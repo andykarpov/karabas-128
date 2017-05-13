@@ -157,3 +157,11 @@ set_global_assignment -name BLOCK_DESIGN_NAMING MAXPLUSII
 set_global_assignment -name MAX7000_PARALLEL_EXPANDER_CHAIN_LENGTH 2
 set_global_assignment -name SUPPRESS_REG_MINIMIZATION_MSG ON
 set_global_assignment -name ENABLE_DRC_SETTINGS ON
+
+set_location_assignment PIN_16 -to CPU_D[0]
+set_location_assignment PIN_14 -to CPU_D[1]
+set_location_assignment PIN_13 -to CPU_D[2]
+set_location_assignment PIN_12 -to CPU_D[3]
+set_location_assignment PIN_10 -to CPU_D[4]
+set_location_assignment PIN_100 -to CPU_D6
+set_location_assignment PIN_84 -to A0

@@ -22,6 +22,9 @@ entity karabas_128 is
 		N_NMI		: in std_logic; -- not used, todo
 		A14	: in std_logic;
 		A15	: in std_logic;
+		CPU_D		: inout std_logic_vector(4 downto 0) := "ZZZZZ"; -- for port #FE
+		CPU_D6		: inout std_logic := 'Z'; -- for port #FE
+		A0		: in std_logic; -- for port #FE
 
 		-- Buffers
 		WR_BUF	: out std_logic := '0';
@@ -31,7 +34,7 @@ entity karabas_128 is
 
 		-- Memory signals
 		MA		: inout std_logic_vector(13 downto 0) := "ZZZZZZZZZZZZZZ";
-		MD		: in std_logic_vector(7 downto 0) := "ZZZZZZZZ";
+		MD		: inout std_logic_vector(7 downto 0) := "ZZZZZZZZ";
 		N_MRD	: out std_logic := '1';
 		N_MWR	: out std_logic := '1';
 		RAM_A14 : out std_logic := '0';
@@ -63,8 +66,7 @@ entity karabas_128 is
 		AY_BDIR	: out std_logic;
 
 		-- Keyboard
-		KB	: in std_logic_vector(4 downto 0) := "11111";
-		--BTN	: in std_logic_vector(1 downto 0) := "11";
+		KB	: in std_logic_vector(4 downto 0) := "ZZZZZ";
 		SW	: in std_logic_vector(4 downto 0) := "00000"
 	);
 end karabas_128;
@@ -116,6 +118,9 @@ architecture rtl of karabas_128 is
 	signal rom_page	: std_logic_vector(1 downto 0) := "00";
 	
 	signal sound_out : std_logic := '0';
+	signal ear : std_logic := '1';
+	signal mic : std_logic := '0';
+	signal port_fe : std_logic := '0';
 	
 begin
 	rom_a <= '0' when A15 = '0' and A14 = '0' else '1';
@@ -161,7 +166,9 @@ begin
 	vsync1 <= '0' when h_cnt(5 downto 1) = "00110" or h_cnt(5 downto 1) = "10100" else '1';
 	vsync2 <= '1' when h_cnt(5 downto 2) = "0010" or h_cnt(5 downto 2) = "1001" else '0';
 	
-	SPEAKER <= sound_out xor TAPE_IN when SW(2) = '0' else sound_out;
+	SPEAKER <= sound_out;
+	TAPE_OUT <= mic;
+	ear <= TAPE_IN;
 
 	AY_CLK	<= chr_col_cnt(1);
 	ay_port	<= '0' when N_WR = '1' and N_RD = '1' else
@@ -355,23 +362,20 @@ begin
 					port_7ffd <= MD(5 downto 0);
 				end if;
 
-				-- TODO!!! 
-				-- port #FE (kb & ear)
-				-- if N_RD = '0' and MA(7 downto 0) = "11111110" then
-				--	MD(4 downto 0) <= KB(4 downto 0);
-				--	MD(5) <= '1';
-				--	MD(6) <= TAPE_IN;
-				--	MD(7) <= '1';
-				--end if;
-
-				-- port #FE (read speaker, mic and border attr)
+				-- port #FE, write by CPU (read speaker, mic and border attr)
 				if N_WR = '0' and MA(7 downto 0) = "11111110" then
 					border_attr <= MD(2 downto 0); -- border attr
-					TAPE_OUT <= MD(3); -- MIC
+					mic <= MD(3); -- MIC
 					sound_out <= MD(4); -- BEEPER
 				end if;
 			end if;             
 		end if;
 	end process;
+	
+	port_fe <= '1' when N_IORQ = '0' and N_RD = '0' and N_M1 = '1' and A0 = '0' else '0';
+	
+	-- port #FE, read by CPU (keyboard, ear)
+	CPU_D(4 downto 0) <= KB(4 downto 0) when port_fe = '1' else "ZZZZZ";
+	CPU_D6 <= ear when port_fe = '1' else 'Z';
 
 end;
