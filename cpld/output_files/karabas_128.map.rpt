@@ -1,0 +1,357 @@
+Analysis & Synthesis report for karabas_128
+Mon May 15 12:00:16 2017
+Quartus II 64-Bit Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
+
+
+---------------------
+; Table of Contents ;
+---------------------
+  1. Legal Notice
+  2. Analysis & Synthesis Summary
+  3. Analysis & Synthesis Settings
+  4. Parallel Compilation
+  5. Analysis & Synthesis Source Files Read
+  6. Analysis & Synthesis Resource Usage Summary
+  7. Analysis & Synthesis Resource Utilization by Entity
+  8. User-Specified and Inferred Latches
+  9. Registers Removed During Synthesis
+ 10. Parameter Settings for Inferred Entity Instance: lpm_counter:invert_rtl_0
+ 11. Parameter Settings for Inferred Entity Instance: lpm_add_sub:Add0
+ 12. Parameter Settings for Inferred Entity Instance: lpm_add_sub:Add2
+ 13. Analysis & Synthesis Messages
+
+
+
+----------------
+; Legal Notice ;
+----------------
+Copyright (C) 1991-2013 Altera Corporation
+Your use of Altera Corporation's design tools, logic functions 
+and other software and tools, and its AMPP partner logic 
+functions, and any output files from any of the foregoing 
+(including device programming or simulation files), and any 
+associated documentation or information are expressly subject 
+to the terms and conditions of the Altera Program License 
+Subscription Agreement, Altera MegaCore Function License 
+Agreement, or other applicable license agreement, including, 
+without limitation, that your use is for the sole purpose of 
+programming logic devices manufactured by Altera and sold by 
+Altera or its authorized distributors.  Please refer to the 
+applicable agreement for further details.
+
+
+
++-------------------------------------------------------------------------------+
+; Analysis & Synthesis Summary                                                  ;
++-----------------------------+-------------------------------------------------+
+; Analysis & Synthesis Status ; Successful - Mon May 15 12:00:16 2017           ;
+; Quartus II 64-Bit Version   ; 13.0.1 Build 232 06/12/2013 SP 1 SJ Web Edition ;
+; Revision Name               ; karabas_128                                     ;
+; Top-level Entity Name       ; karabas_128                                     ;
+; Family                      ; MAX7000S                                        ;
+; Total macrocells            ; 114                                             ;
+; Total pins                  ; 77                                              ;
++-----------------------------+-------------------------------------------------+
+
+
++---------------------------------------------------------------------------------------------------------------+
+; Analysis & Synthesis Settings                                                                                 ;
++----------------------------------------------------------------------------+------------------+---------------+
+; Option                                                                     ; Setting          ; Default Value ;
++----------------------------------------------------------------------------+------------------+---------------+
+; Device                                                                     ; EPM7128STC100-15 ;               ;
+; Top-level entity name                                                      ; karabas_128      ; karabas_128   ;
+; Family name                                                                ; MAX7000S         ; Cyclone IV GX ;
+; State Machine Processing                                                   ; Minimal Bits     ; Auto          ;
+; Optimization Technique                                                     ; Balanced         ; Speed         ;
+; Parallel Expander Chain Length                                             ; 2                ; 4             ;
+; Auto Resource Sharing                                                      ; On               ; Off           ;
+; Suppress Register Optimization Related Messages                            ; On               ; Off           ;
+; Block Design Naming                                                        ; MaxPlusII        ; Auto          ;
+; Use smart compilation                                                      ; Off              ; Off           ;
+; Enable parallel Assembler and TimeQuest Timing Analyzer during compilation ; On               ; On            ;
+; Enable compact report table                                                ; Off              ; Off           ;
+; Create Debugging Nodes for IP Cores                                        ; Off              ; Off           ;
+; Preserve fewer node names                                                  ; On               ; On            ;
+; Disable OpenCore Plus hardware evaluation                                  ; Off              ; Off           ;
+; Verilog Version                                                            ; Verilog_2001     ; Verilog_2001  ;
+; VHDL Version                                                               ; VHDL_1993        ; VHDL_1993     ;
+; Safe State Machine                                                         ; Off              ; Off           ;
+; Extract Verilog State Machines                                             ; On               ; On            ;
+; Extract VHDL State Machines                                                ; On               ; On            ;
+; Ignore Verilog initial constructs                                          ; Off              ; Off           ;
+; Iteration limit for constant Verilog loops                                 ; 5000             ; 5000          ;
+; Iteration limit for non-constant Verilog loops                             ; 250              ; 250           ;
+; Add Pass-Through Logic to Inferred RAMs                                    ; On               ; On            ;
+; Infer RAMs from Raw Logic                                                  ; On               ; On            ;
+; Parallel Synthesis                                                         ; On               ; On            ;
+; NOT Gate Push-Back                                                         ; On               ; On            ;
+; Power-Up Don't Care                                                        ; On               ; On            ;
+; Remove Duplicate Registers                                                 ; On               ; On            ;
+; Ignore CARRY Buffers                                                       ; Off              ; Off           ;
+; Ignore CASCADE Buffers                                                     ; Off              ; Off           ;
+; Ignore GLOBAL Buffers                                                      ; Off              ; Off           ;
+; Ignore ROW GLOBAL Buffers                                                  ; Off              ; Off           ;
+; Ignore LCELL Buffers                                                       ; Auto             ; Auto          ;
+; Ignore SOFT Buffers                                                        ; Off              ; Off           ;
+; Limit AHDL Integers to 32 Bits                                             ; Off              ; Off           ;
+; Allow XOR Gate Usage                                                       ; On               ; On            ;
+; Auto Logic Cell Insertion                                                  ; On               ; On            ;
+; Auto Parallel Expanders                                                    ; On               ; On            ;
+; Auto Open-Drain Pins                                                       ; On               ; On            ;
+; Maximum Fan-in Per Macrocell                                               ; 100              ; 100           ;
+; Use LogicLock Constraints during Resource Balancing                        ; On               ; On            ;
+; Ignore translate_off and synthesis_off directives                          ; Off              ; Off           ;
+; Report Parameter Settings                                                  ; On               ; On            ;
+; Report Source Assignments                                                  ; On               ; On            ;
+; Report Connectivity Checks                                                 ; On               ; On            ;
+; HDL message level                                                          ; Level2           ; Level2        ;
+; Number of Removed Registers Reported in Synthesis Report                   ; 5000             ; 5000          ;
+; Number of Swept Nodes Reported in Synthesis Report                         ; 5000             ; 5000          ;
+; Number of Inverted Registers Reported in Synthesis Report                  ; 100              ; 100           ;
+; Synthesis Effort                                                           ; Auto             ; Auto          ;
+; Shift Register Replacement - Allow Asynchronous Clear Signal               ; On               ; On            ;
+; Pre-Mapping Resynthesis Optimization                                       ; Off              ; Off           ;
+; Analysis & Synthesis Message Level                                         ; Medium           ; Medium        ;
+; Disable Register Merging Across Hierarchies                                ; Auto             ; Auto          ;
+; Synthesis Seed                                                             ; 1                ; 1             ;
++----------------------------------------------------------------------------+------------------+---------------+
+
+
+Parallel compilation was disabled, but you have multiple processors available. Enable parallel compilation to reduce compilation time.
++-------------------------------------+
+; Parallel Compilation                ;
++----------------------------+--------+
+; Processors                 ; Number ;
++----------------------------+--------+
+; Number detected on machine ; 2      ;
+; Maximum allowed            ; 1      ;
++----------------------------+--------+
+
+
++--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Analysis & Synthesis Source Files Read                                                                                                                             ;
++----------------------------------+-----------------+-----------------+-----------------------------------------------------------------------------------+---------+
+; File Name with User-Entered Path ; Used in Netlist ; File Type       ; File Name with Absolute Path                                                      ; Library ;
++----------------------------------+-----------------+-----------------+-----------------------------------------------------------------------------------+---------+
+; karabas_128.vhd                  ; yes             ; User VHDL File  ; /home/andy/Documents/Projects/karabas-128/cpld/karabas_128.vhd                    ;         ;
+; lpm_counter.tdf                  ; yes             ; Megafunction    ; /home/andy/altera/13.0sp1/quartus/libraries/megafunctions/lpm_counter.tdf         ;         ;
+; lpm_constant.inc                 ; yes             ; Megafunction    ; /home/andy/altera/13.0sp1/quartus/libraries/megafunctions/lpm_constant.inc        ;         ;
+; lpm_decode.inc                   ; yes             ; Megafunction    ; /home/andy/altera/13.0sp1/quartus/libraries/megafunctions/lpm_decode.inc          ;         ;
+; lpm_add_sub.inc                  ; yes             ; Megafunction    ; /home/andy/altera/13.0sp1/quartus/libraries/megafunctions/lpm_add_sub.inc         ;         ;
+; cmpconst.inc                     ; yes             ; Megafunction    ; /home/andy/altera/13.0sp1/quartus/libraries/megafunctions/cmpconst.inc            ;         ;
+; lpm_compare.inc                  ; yes             ; Megafunction    ; /home/andy/altera/13.0sp1/quartus/libraries/megafunctions/lpm_compare.inc         ;         ;
+; lpm_counter.inc                  ; yes             ; Megafunction    ; /home/andy/altera/13.0sp1/quartus/libraries/megafunctions/lpm_counter.inc         ;         ;
+; dffeea.inc                       ; yes             ; Megafunction    ; /home/andy/altera/13.0sp1/quartus/libraries/megafunctions/dffeea.inc              ;         ;
+; alt_counter_stratix.inc          ; yes             ; Megafunction    ; /home/andy/altera/13.0sp1/quartus/libraries/megafunctions/alt_counter_stratix.inc ;         ;
+; aglobal130.inc                   ; yes             ; Megafunction    ; /home/andy/altera/13.0sp1/quartus/libraries/megafunctions/aglobal130.inc          ;         ;
+; lpm_add_sub.tdf                  ; yes             ; Megafunction    ; /home/andy/altera/13.0sp1/quartus/libraries/megafunctions/lpm_add_sub.tdf         ;         ;
+; addcore.inc                      ; yes             ; Megafunction    ; /home/andy/altera/13.0sp1/quartus/libraries/megafunctions/addcore.inc             ;         ;
+; look_add.inc                     ; yes             ; Megafunction    ; /home/andy/altera/13.0sp1/quartus/libraries/megafunctions/look_add.inc            ;         ;
+; bypassff.inc                     ; yes             ; Megafunction    ; /home/andy/altera/13.0sp1/quartus/libraries/megafunctions/bypassff.inc            ;         ;
+; altshift.inc                     ; yes             ; Megafunction    ; /home/andy/altera/13.0sp1/quartus/libraries/megafunctions/altshift.inc            ;         ;
+; alt_stratix_add_sub.inc          ; yes             ; Megafunction    ; /home/andy/altera/13.0sp1/quartus/libraries/megafunctions/alt_stratix_add_sub.inc ;         ;
+; addcore.tdf                      ; yes             ; Megafunction    ; /home/andy/altera/13.0sp1/quartus/libraries/megafunctions/addcore.tdf             ;         ;
+; a_csnbuffer.inc                  ; yes             ; Megafunction    ; /home/andy/altera/13.0sp1/quartus/libraries/megafunctions/a_csnbuffer.inc         ;         ;
+; a_csnbuffer.tdf                  ; yes             ; Megafunction    ; /home/andy/altera/13.0sp1/quartus/libraries/megafunctions/a_csnbuffer.tdf         ;         ;
+; altshift.tdf                     ; yes             ; Megafunction    ; /home/andy/altera/13.0sp1/quartus/libraries/megafunctions/altshift.tdf            ;         ;
++----------------------------------+-----------------+-----------------+-----------------------------------------------------------------------------------+---------+
+
+
++---------------------------------------------+
+; Analysis & Synthesis Resource Usage Summary ;
++----------------------+----------------------+
+; Resource             ; Usage                ;
++----------------------+----------------------+
+; Logic cells          ; 114                  ;
+; Total registers      ; 82                   ;
+; I/O pins             ; 77                   ;
+; Shareable expanders  ; 8                    ;
+; Parallel expanders   ; 5                    ;
+; Maximum fan-out node ; tick                 ;
+; Maximum fan-out      ; 82                   ;
+; Total fan-out        ; 1086                 ;
+; Average fan-out      ; 5.46                 ;
++----------------------+----------------------+
+
+
++----------------------------------------------------------------------------------------------------------+
+; Analysis & Synthesis Resource Utilization by Entity                                                      ;
++-------------------------------+------------+------+---------------------------------------+--------------+
+; Compilation Hierarchy Node    ; Macrocells ; Pins ; Full Hierarchy Name                   ; Library Name ;
++-------------------------------+------------+------+---------------------------------------+--------------+
+; |karabas_128                  ; 114        ; 77   ; |karabas_128                          ; work         ;
+;    |lpm_counter:invert_rtl_0| ; 5          ; 0    ; |karabas_128|lpm_counter:invert_rtl_0 ; work         ;
++-------------------------------+------------+------+---------------------------------------+--------------+
+
+
++---------------------------------------------------------------------------------------------------+
+; User-Specified and Inferred Latches                                                               ;
++----------------------------------------------------+---------------------+------------------------+
+; Latch Name                                         ; Latch Enable Signal ; Free of Timing Hazards ;
++----------------------------------------------------+---------------------+------------------------+
+; ay_port                                            ; GND                 ; yes                    ;
+; Number of user-specified and inferred latches = 1  ;                     ;                        ;
++----------------------------------------------------+---------------------+------------------------+
+Note: All latches listed above may not be present at the end of synthesis due to various synthesis optimizations.
+
+
++------------------------------------------------------------------+
+; Registers Removed During Synthesis                               ;
++---------------------------------------+--------------------------+
+; Register name                         ; Reason for Removal       ;
++---------------------------------------+--------------------------+
+; VIDEO_GREEN~en                        ; Merged with VIDEO_RED~en ;
+; VIDEO_BLUE~en                         ; Merged with VIDEO_RED~en ;
+; Total Number of Removed Registers = 2 ;                          ;
++---------------------------------------+--------------------------+
+
+
++---------------------------------------------------------------------------+
+; Parameter Settings for Inferred Entity Instance: lpm_counter:invert_rtl_0 ;
++------------------------+-------------------+------------------------------+
+; Parameter Name         ; Value             ; Type                         ;
++------------------------+-------------------+------------------------------+
+; AUTO_CARRY_CHAINS      ; ON                ; AUTO_CARRY                   ;
+; IGNORE_CARRY_BUFFERS   ; OFF               ; IGNORE_CARRY                 ;
+; AUTO_CASCADE_CHAINS    ; ON                ; AUTO_CASCADE                 ;
+; IGNORE_CASCADE_BUFFERS ; OFF               ; IGNORE_CASCADE               ;
+; LPM_WIDTH              ; 5                 ; Untyped                      ;
+; LPM_DIRECTION          ; UP                ; Untyped                      ;
+; LPM_MODULUS            ; 0                 ; Untyped                      ;
+; LPM_AVALUE             ; UNUSED            ; Untyped                      ;
+; LPM_SVALUE             ; UNUSED            ; Untyped                      ;
+; LPM_PORT_UPDOWN        ; PORT_CONNECTIVITY ; Untyped                      ;
+; DEVICE_FAMILY          ; MAX7000S          ; Untyped                      ;
+; CARRY_CHAIN            ; MANUAL            ; Untyped                      ;
+; CARRY_CHAIN_LENGTH     ; 48                ; CARRY_CHAIN_LENGTH           ;
+; NOT_GATE_PUSH_BACK     ; ON                ; NOT_GATE_PUSH_BACK           ;
+; CARRY_CNT_EN           ; SMART             ; Untyped                      ;
+; LABWIDE_SCLR           ; ON                ; Untyped                      ;
+; USE_NEW_VERSION        ; TRUE              ; Untyped                      ;
+; CBXI_PARAMETER         ; NOTHING           ; Untyped                      ;
++------------------------+-------------------+------------------------------+
+Note: In order to hide this table in the UI and the text report file, please set the "Show Parameter Settings in Synthesis Report" option in "Analysis and Synthesis Settings -> More Settings" to "Off".
+
+
++-------------------------------------------------------------------+
+; Parameter Settings for Inferred Entity Instance: lpm_add_sub:Add0 ;
++------------------------+-------------+----------------------------+
+; Parameter Name         ; Value       ; Type                       ;
++------------------------+-------------+----------------------------+
+; LPM_WIDTH              ; 6           ; Untyped                    ;
+; LPM_REPRESENTATION     ; UNSIGNED    ; Untyped                    ;
+; LPM_DIRECTION          ; ADD         ; Untyped                    ;
+; ONE_INPUT_IS_CONSTANT  ; YES         ; Untyped                    ;
+; LPM_PIPELINE           ; 0           ; Untyped                    ;
+; MAXIMIZE_SPEED         ; 5           ; Untyped                    ;
+; REGISTERED_AT_END      ; 0           ; Untyped                    ;
+; OPTIMIZE_FOR_SPEED     ; 5           ; Untyped                    ;
+; USE_CS_BUFFERS         ; 1           ; Untyped                    ;
+; CARRY_CHAIN            ; MANUAL      ; Untyped                    ;
+; CARRY_CHAIN_LENGTH     ; 48          ; CARRY_CHAIN_LENGTH         ;
+; DEVICE_FAMILY          ; MAX7000S    ; Untyped                    ;
+; USE_WYS                ; OFF         ; Untyped                    ;
+; STYLE                  ; FAST        ; Untyped                    ;
+; CBXI_PARAMETER         ; add_sub_pnh ; Untyped                    ;
+; AUTO_CARRY_CHAINS      ; ON          ; AUTO_CARRY                 ;
+; IGNORE_CARRY_BUFFERS   ; OFF         ; IGNORE_CARRY               ;
+; AUTO_CASCADE_CHAINS    ; ON          ; AUTO_CASCADE               ;
+; IGNORE_CASCADE_BUFFERS ; OFF         ; IGNORE_CASCADE             ;
++------------------------+-------------+----------------------------+
+Note: In order to hide this table in the UI and the text report file, please set the "Show Parameter Settings in Synthesis Report" option in "Analysis and Synthesis Settings -> More Settings" to "Off".
+
+
++-------------------------------------------------------------------+
+; Parameter Settings for Inferred Entity Instance: lpm_add_sub:Add2 ;
++------------------------+-------------+----------------------------+
+; Parameter Name         ; Value       ; Type                       ;
++------------------------+-------------+----------------------------+
+; LPM_WIDTH              ; 6           ; Untyped                    ;
+; LPM_REPRESENTATION     ; UNSIGNED    ; Untyped                    ;
+; LPM_DIRECTION          ; ADD         ; Untyped                    ;
+; ONE_INPUT_IS_CONSTANT  ; YES         ; Untyped                    ;
+; LPM_PIPELINE           ; 0           ; Untyped                    ;
+; MAXIMIZE_SPEED         ; 5           ; Untyped                    ;
+; REGISTERED_AT_END      ; 0           ; Untyped                    ;
+; OPTIMIZE_FOR_SPEED     ; 5           ; Untyped                    ;
+; USE_CS_BUFFERS         ; 1           ; Untyped                    ;
+; CARRY_CHAIN            ; MANUAL      ; Untyped                    ;
+; CARRY_CHAIN_LENGTH     ; 48          ; CARRY_CHAIN_LENGTH         ;
+; DEVICE_FAMILY          ; MAX7000S    ; Untyped                    ;
+; USE_WYS                ; OFF         ; Untyped                    ;
+; STYLE                  ; FAST        ; Untyped                    ;
+; CBXI_PARAMETER         ; add_sub_pnh ; Untyped                    ;
+; AUTO_CARRY_CHAINS      ; ON          ; AUTO_CARRY                 ;
+; IGNORE_CARRY_BUFFERS   ; OFF         ; IGNORE_CARRY               ;
+; AUTO_CASCADE_CHAINS    ; ON          ; AUTO_CASCADE               ;
+; IGNORE_CASCADE_BUFFERS ; OFF         ; IGNORE_CASCADE             ;
++------------------------+-------------+----------------------------+
+Note: In order to hide this table in the UI and the text report file, please set the "Show Parameter Settings in Synthesis Report" option in "Analysis and Synthesis Settings -> More Settings" to "Off".
+
+
++-------------------------------+
+; Analysis & Synthesis Messages ;
++-------------------------------+
+Info: *******************************************************************
+Info: Running Quartus II 64-Bit Analysis & Synthesis
+    Info: Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
+    Info: Processing started: Mon May 15 12:00:11 2017
+Info: Command: quartus_map --read_settings_files=on --write_settings_files=off karabas_128 -c karabas_128
+Warning (20028): Parallel compilation is not licensed and has been disabled
+Info (12021): Found 2 design units, including 1 entities, in source file karabas_128.vhd
+    Info (12022): Found design unit 1: karabas_128-rtl
+    Info (12023): Found entity 1: karabas_128
+Info (12127): Elaborating entity "karabas_128" for the top level hierarchy
+Info (10041): Inferred latch for "ay_port" at karabas_128.vhd(180)
+Info (19000): Inferred 1 megafunctions from design logic
+    Info (19001): Inferred lpm_counter megafunction (LPM_WIDTH=5) from the following logic: "invert_rtl_0"
+Info (278001): Inferred 2 megafunctions from design logic
+    Info (278002): Inferred adder/subtractor megafunction ("lpm_add_sub") from the following logic: "Add0"
+    Info (278002): Inferred adder/subtractor megafunction ("lpm_add_sub") from the following logic: "Add2"
+Info (12130): Elaborated megafunction instantiation "lpm_counter:invert_rtl_0"
+Info (12133): Instantiated megafunction "lpm_counter:invert_rtl_0" with the following parameter:
+    Info (12134): Parameter "LPM_WIDTH" = "5"
+    Info (12134): Parameter "LPM_DIRECTION" = "UP"
+    Info (12134): Parameter "LPM_TYPE" = "LPM_COUNTER"
+Info (12130): Elaborated megafunction instantiation "lpm_add_sub:Add0"
+Info (12133): Instantiated megafunction "lpm_add_sub:Add0" with the following parameter:
+    Info (12134): Parameter "LPM_WIDTH" = "6"
+    Info (12134): Parameter "LPM_DIRECTION" = "ADD"
+    Info (12134): Parameter "LPM_REPRESENTATION" = "UNSIGNED"
+    Info (12134): Parameter "ONE_INPUT_IS_CONSTANT" = "YES"
+Info (12131): Elaborated megafunction instantiation "lpm_add_sub:Add0|addcore:adder", which is child of megafunction instantiation "lpm_add_sub:Add0"
+Info (12131): Elaborated megafunction instantiation "lpm_add_sub:Add0|addcore:adder|a_csnbuffer:oflow_node", which is child of megafunction instantiation "lpm_add_sub:Add0"
+Info (12131): Elaborated megafunction instantiation "lpm_add_sub:Add0|addcore:adder|a_csnbuffer:result_node", which is child of megafunction instantiation "lpm_add_sub:Add0"
+Info (12131): Elaborated megafunction instantiation "lpm_add_sub:Add0|addcore:adder|addcore:adder[0]", which is child of megafunction instantiation "lpm_add_sub:Add0"
+Info (12131): Elaborated megafunction instantiation "lpm_add_sub:Add0|addcore:adder|addcore:adder[0]|a_csnbuffer:oflow_node", which is child of megafunction instantiation "lpm_add_sub:Add0"
+Info (12131): Elaborated megafunction instantiation "lpm_add_sub:Add0|addcore:adder|addcore:adder[0]|a_csnbuffer:result_node", which is child of megafunction instantiation "lpm_add_sub:Add0"
+Info (12131): Elaborated megafunction instantiation "lpm_add_sub:Add0|altshift:result_ext_latency_ffs", which is child of megafunction instantiation "lpm_add_sub:Add0"
+Info (12131): Elaborated megafunction instantiation "lpm_add_sub:Add0|altshift:carry_ext_latency_ffs", which is child of megafunction instantiation "lpm_add_sub:Add0"
+Info (13014): Ignored 14 buffer(s)
+    Info (13019): Ignored 14 SOFT buffer(s)
+Warning (13024): Output pins are stuck at VCC or GND
+    Warning (13410): Pin "ROM_A15" is stuck at GND
+Info (280013): Promoted pin-driven signal(s) to global signal
+    Info (280014): Promoted clock signal driven by pin "CLK14" to global clock signal
+Warning (21074): Design contains 7 input pin(s) that do not drive logic
+    Warning (15610): No output dependent on input pin "BUS_N_IORQGE"
+    Warning (15610): No output dependent on input pin "BUS_N_ROMCS"
+    Warning (15610): No output dependent on input pin "SW[0]"
+    Warning (15610): No output dependent on input pin "SW[1]"
+    Warning (15610): No output dependent on input pin "SW[2]"
+    Warning (15610): No output dependent on input pin "SW[3]"
+    Warning (15610): No output dependent on input pin "SW[4]"
+Info (21057): Implemented 199 device resources after synthesis - the final resource count might be different
+    Info (21058): Implemented 31 input pins
+    Info (21059): Implemented 26 output pins
+    Info (21060): Implemented 20 bidirectional pins
+    Info (21063): Implemented 114 macrocells
+    Info (21073): Implemented 8 shareable expanders
+Info: Quartus II 64-Bit Analysis & Synthesis was successful. 0 errors, 11 warnings
+    Info: Peak virtual memory: 641 megabytes
+    Info: Processing ended: Mon May 15 12:00:16 2017
+    Info: Elapsed time: 00:00:05
+    Info: Total CPU time (on all processors): 00:00:04
+
+

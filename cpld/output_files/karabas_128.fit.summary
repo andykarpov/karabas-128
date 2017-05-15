@@ -1,0 +1,9 @@
+Fitter Status : Successful - Mon May 15 12:00:24 2017
+Quartus II 64-Bit Version : 13.0.1 Build 232 06/12/2013 SP 1 SJ Web Edition
+Revision Name : karabas_128
+Top-level Entity Name : karabas_128
+Family : MAX7000S
+Device : EPM7128STC100-15
+Timing Models : Final
+Total macrocells : 114 / 128 ( 89 % )
+Total pins : 81 / 84 ( 96 % )

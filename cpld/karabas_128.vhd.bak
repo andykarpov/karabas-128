@@ -14,18 +14,15 @@ entity karabas_128 is
 		N_RD			: in std_logic;
 		N_WR			: in std_logic;
 		N_IORQ		: in std_logic;
+		--N_IORQGE	: in std_logic; -- ZX BUS IORQ ULA disable, todo
 		N_MREQ		: in std_logic;
+		--N_ROMCS1	: in std_logic; -- ZX BUS ROM CS disable, todo
 		N_M1			: in std_logic;
+		N_RFSH		: in std_logic; -- not used
+		N_NMI		: in std_logic; -- not used, todo
 		A14	: in std_logic;
 		A15	: in std_logic;
-		CPU_D		: inout std_logic_vector(4 downto 0) := "ZZZZZ"; -- for port #FE
-		CPU_D6		: inout std_logic := 'Z'; -- for port #FE
-		A0		: in std_logic; -- for port #FE
 
-		-- ZXBUS specific
-		BUS_N_IORQGE	: in std_logic := 'Z'; -- ZX BUS IORQ ULA disable, TODO
-		BUS_N_ROMCS	: in std_logic := 'Z'; -- ZX BUS ROM CS disable
-		
 		-- Buffers
 		WR_BUF	: out std_logic := '0';
 		N_RD_BUF_EN	: out std_logic := '1';
@@ -66,7 +63,8 @@ entity karabas_128 is
 		AY_BDIR	: out std_logic;
 
 		-- Keyboard
-		KB	: in std_logic_vector(4 downto 0) := "ZZZZZ";
+		KB	: in std_logic_vector(4 downto 0) := "11111";
+		--BTN	: in std_logic_vector(1 downto 0) := "11";
 		SW	: in std_logic_vector(4 downto 0) := "00000"
 	);
 end karabas_128;
@@ -111,26 +109,19 @@ architecture rtl of karabas_128 is
 	
 	signal rom_sel	 	: std_logic;
 	
-	signal n_is_ram     : std_logic := '1';
+	signal RAM     : std_logic := '1';
 	signal ram_page	: std_logic_vector(2 downto 0) := "000";
 
-	signal n_is_rom     : std_logic := '1';
+	signal ROM     : std_logic := '1';
 	signal rom_page	: std_logic_vector(1 downto 0) := "00";
 	
 	signal sound_out : std_logic := '0';
-	signal ear : std_logic := '1';
-	signal mic : std_logic := '0';
-	signal port_fe : std_logic := '0';
-	signal port_ff: std_logic := '0';
-	
-	signal rom_disable : std_logic := '0';
-	signal ula_disable: std_logic := '0';
 	
 begin
 	rom_a <= '0' when A15 = '0' and A14 = '0' else '1';
 	
-	n_is_rom <= '0' when N_MREQ = '0' and rom_a = '0' else '1';
-	n_is_ram <= '0' when N_MREQ = '0' and rom_a = '1' else '1';
+	ROM <= '0' when N_MREQ = '0' and rom_a = '0' else '1';
+	RAM <= '0' when N_MREQ = '0' and rom_a = '1' else '1';
 
 	rom_sel <= port_7ffd(4);
 
@@ -142,13 +133,11 @@ begin
 				"010" when A15 = '1' and A14 = '0' else
 				port_7ffd(2 downto 0);
 
-	--rom_disable <= '1' when BUS_N_ROMCS = '1' else '0';
-	--ula_disable <= '1' when BUS_N_IORQGE = '1' else '0';
-	rom_disable <= '0';
-	ula_disable <= '0';
-		
-	N_ROM_CS <= rom_disable or n_is_rom;
+	N_ROM_CS <= ROM;
 
+	-- SW(0), SW(1): remap A14, A15 for 27c512, 28c256, etc
+	--ROM_A14 <= rom_page(0) when SW(0) = '0' else '1';
+	--ROM_A15 <= rom_page(1) when SW(1) = '0' else '1';
 	ROM_A14 <= rom_page(0);
 	ROM_A15 <= rom_page(1);
 
@@ -160,11 +149,11 @@ begin
 	vbus_rdy <= '0' when tick = '0' or chr_col_cnt(0) = '0' else '1';
 	N_A_GATE_EN <= vbus_mode;
 	
-	N_RD_BUF_EN <= '0' when n_is_ram = '0' and N_RD = '0' else '1';	
-	N_WR_BUF_EN <= '0' when vbus_mode = '0' and ((n_is_ram = '0' or (N_IORQ = '0' and N_M1 = '1')) and N_WR = '0') else '1';
+	N_RD_BUF_EN <= '0' when RAM = '0' and N_RD = '0' else '1';	
+	N_WR_BUF_EN <= '0' when vbus_mode = '0' and ((RAM = '0' or (N_IORQ = '0' and N_M1 = '1')) and N_WR = '0') else '1';
 	
 	N_MRD <= '0' when (vbus_mode = '1' and vbus_rdy = '0') or (vbus_mode = '0' and N_RD = '0' and N_MREQ = '0') else '1';  
-	N_MWR <= '0' when vbus_mode = '0' and n_is_ram = '0' and N_WR = '0' and chr_col_cnt(0) = '0' else '1';
+	N_MWR <= '0' when vbus_mode = '0' and RAM = '0' and N_WR = '0' and chr_col_cnt(0) = '0' else '1';
 
 	paper <= '0' when h_cnt(5) = '0' and v_cnt(5) = '0' and ( v_cnt(4) = '0' or v_cnt(3) = '0' ) else '1';      
 
@@ -172,9 +161,7 @@ begin
 	vsync1 <= '0' when h_cnt(5 downto 1) = "00110" or h_cnt(5 downto 1) = "10100" else '1';
 	vsync2 <= '1' when h_cnt(5 downto 2) = "0010" or h_cnt(5 downto 2) = "1001" else '0';
 	
-	SPEAKER <= sound_out;
-	TAPE_OUT <= mic;
-	ear <= TAPE_IN;
+	SPEAKER <= sound_out xor TAPE_IN when SW(2) = '0' else sound_out;
 
 	AY_CLK	<= chr_col_cnt(1);
 	ay_port	<= '0' when N_WR = '1' and N_RD = '1' else
@@ -361,7 +348,6 @@ begin
 			if N_RESET = '0' then
 				port_7ffd <= "000000";
 				sound_out <= '0';
-				mic <= '0';
 			elsif tick = '1' and chr_col_cnt(0) = '0' and vbus_mode = '0' and N_IORQ = '0' and N_M1 = '1' then
 
 				-- port 7ffd, read				
@@ -369,22 +355,23 @@ begin
 					port_7ffd <= MD(5 downto 0);
 				end if;
 
-				-- port #FE, write by CPU (read speaker, mic and border attr)
-				if N_WR = '0' and MA(7 downto 0) = "11111110" and ula_disable = '0' then
+				-- TODO!!! 
+				-- port #FE (kb & ear)
+				-- if N_RD = '0' and MA(7 downto 0) = "11111110" then
+				--	MD(4 downto 0) <= KB(4 downto 0);
+				--	MD(5) <= '1';
+				--	MD(6) <= TAPE_IN;
+				--	MD(7) <= '1';
+				--end if;
+
+				-- port #FE (read speaker, mic and border attr)
+				if N_WR = '0' and MA(7 downto 0) = "11111110" then
 					border_attr <= MD(2 downto 0); -- border attr
-					mic <= MD(3); -- MIC
+					TAPE_OUT <= MD(3); -- MIC
 					sound_out <= MD(4); -- BEEPER
 				end if;
-				
 			end if;             
 		end if;
 	end process;
-	
-	port_fe <= '1' when N_IORQ = '0' and N_RD = '0' and N_M1 = '1' and A0 = '0' and ula_disable = '0' else '0';
-	-- port #FE, read by CPU (keyboard, ear)
-	CPU_D(4 downto 0) <= KB(4 downto 0) when port_fe = '1' else "ZZZZZ";
-	CPU_D6 <= ear when port_fe = '1' else 'Z';
-	
-
 
 end;

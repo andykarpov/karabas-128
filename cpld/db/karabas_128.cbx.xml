@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<LOG_ROOT>
+	<PROJECT NAME="karabas_128">
+		<CBX_INST_ENTRY INSTANCE_NAME="|karabas_128|lpm_add_sub:Add0" CBX_FILE_NAME="add_sub_pnh.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|karabas_128|lpm_add_sub:Add2" CBX_FILE_NAME="add_sub_pnh.tdf"/>
+	</PROJECT>
+</LOG_ROOT>
