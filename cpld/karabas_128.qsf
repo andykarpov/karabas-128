@@ -56,11 +56,6 @@ set_location_assignment PIN_4 -to TDI
 set_location_assignment PIN_73 -to TDO
 set_location_assignment PIN_15 -to TMS
 set_location_assignment PIN_87 -to CLK14
-set_location_assignment PIN_1 -to SW[0]
-set_location_assignment PIN_93 -to SW[1]
-set_location_assignment PIN_2 -to SW[2]
-set_location_assignment PIN_97 -to SW[3]
-set_location_assignment PIN_99 -to SW[4]
 set_location_assignment PIN_57 -to MD[0]
 set_location_assignment PIN_55 -to MD[1]
 set_location_assignment PIN_53 -to MD[2]
@@ -89,7 +84,6 @@ set_location_assignment PIN_75 -to RAM_A14
 set_location_assignment PIN_76 -to RAM_A16
 set_location_assignment PIN_80 -to RAM_A15
 set_location_assignment PIN_37 -to CLK_CPU
-set_location_assignment PIN_40 -to ROM_A15
 set_location_assignment PIN_42 -to ROM_A14
 set_location_assignment PIN_35 -to A14
 set_location_assignment PIN_36 -to A15
@@ -115,12 +109,7 @@ set_location_assignment PIN_48 -to N_WR_BUF_EN
 set_location_assignment PIN_20 -to SPEAKER
 set_location_assignment PIN_6 -to TAPE_IN
 set_location_assignment PIN_8 -to TAPE_OUT
-set_location_assignment PIN_85 -to VIDEO_BLUE
-set_location_assignment PIN_92 -to VIDEO_BRIGHT
-set_location_assignment PIN_98 -to VIDEO_CSYNC
-set_location_assignment PIN_83 -to VIDEO_GREEN
 set_location_assignment PIN_94 -to VIDEO_HSYNC
-set_location_assignment PIN_81 -to VIDEO_RED
 set_location_assignment PIN_96 -to VIDEO_VSYNC
 set_location_assignment PIN_46 -to WR_BUF
 
@@ -156,12 +145,26 @@ set_global_assignment -name MAX7000_PARALLEL_EXPANDER_CHAIN_LENGTH 2
 set_global_assignment -name SUPPRESS_REG_MINIMIZATION_MSG ON
 set_global_assignment -name ENABLE_DRC_SETTINGS ON
 
-set_location_assignment PIN_16 -to CPU_D[0]
-set_location_assignment PIN_14 -to CPU_D[1]
-set_location_assignment PIN_13 -to CPU_D[2]
-set_location_assignment PIN_12 -to CPU_D[3]
-set_location_assignment PIN_10 -to CPU_D[4]
-set_location_assignment PIN_100 -to CPU_D6
-set_location_assignment PIN_84 -to A0
 set_location_assignment PIN_31 -to BUS_N_IORQGE
 set_location_assignment PIN_24 -to BUS_N_ROMCS
+set_location_assignment PIN_1 -to D[7]
+set_location_assignment PIN_93 -to A[2]
+set_location_assignment PIN_2 -to A[1]
+set_location_assignment PIN_97 -to A[3]
+set_location_assignment PIN_99 -to A[4]
+set_location_assignment PIN_40 -to D[5]
+set_location_assignment PIN_16 -to D[0]
+set_location_assignment PIN_14 -to D[1]
+set_location_assignment PIN_13 -to D[2]
+set_location_assignment PIN_12 -to D[3]
+set_location_assignment PIN_10 -to D[4]
+set_location_assignment PIN_100 -to D[6]
+set_location_assignment PIN_84 -to A[0]
+set_location_assignment PIN_90 -to A[5]
+set_location_assignment PIN_89 -to A[6]
+set_location_assignment PIN_88 -to A[7]
+set_location_assignment PIN_85 -to VIDEO_B
+set_location_assignment PIN_92 -to VIDEO_I
+set_location_assignment PIN_98 -to VIDEO_SYNC
+set_location_assignment PIN_83 -to VIDEO_G
+set_location_assignment PIN_81 -to VIDEO_R
