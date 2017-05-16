@@ -177,8 +177,7 @@ begin
 
 	WR_BUF <= '1' when vbus_mode = '0' and chr_col_cnt(0) = '0' else '0';
 		
-	-- generate Z80 CLOCK 3.5 MHz
-
+	-- Z80 clock 3.5 MHz
 	process( CLK14 )
 	begin
 	-- rising edge of CLK14
@@ -193,6 +192,7 @@ begin
 		end if;     
 	end process;
 
+	-- sync, counters
 	process( CLK14 )
 	begin
 		if CLK14'event and CLK14 = '1' then
@@ -209,7 +209,7 @@ begin
                     
 					if hor_cnt = 39 then                    
 						if chr_row_cnt = 7 then
-							if ver_cnt = 39 then
+							if ver_cnt = 38 then
 								ver_cnt <= (others => '0');
 								invert <= invert + 1;
 							else
@@ -237,20 +237,30 @@ begin
                     
 				end if;
             
-				if chr_col_cnt = 6 and hor_cnt(2 downto 0) = "111" then
-					if ver_cnt = 29 and chr_row_cnt = 7 and hor_cnt(5 downto 3) = "100" then
+				--if chr_col_cnt = 6 and hor_cnt(2 downto 0) = "111" then
+				--	if ver_cnt = 29 and chr_row_cnt = 7 and hor_cnt(5 downto 3) = "100" then
+				--		N_INT <= '0';
+				--	else
+				--		N_INT <= '1';
+				--	end if;
+				--end if;
+
+				if chr_col_cnt = 0 then
+					if ver_cnt = 31 and chr_row_cnt = 0 and hor_cnt(5 downto 3) = "000" then
 						N_INT <= '0';
 					else
 						N_INT <= '1';
 					end if;
 
 				end if;
+
 				chr_col_cnt <= chr_col_cnt + 1;
 			end if;
 			tick <= not tick;
 		end if;
 	end process;
 
+	-- video mem
 	process( CLK14 )
 	begin
 		if CLK14'event and CLK14 = '1' then 
@@ -279,6 +289,7 @@ begin
 											std_logic_vector( "0" & ver_cnt(4 downto 3) & chr_row_cnt & ver_cnt(2 downto 0) & hor_cnt(4 downto 0) ) when vid_rd = '0' else
 											std_logic_vector( "0110" & ver_cnt(4 downto 0) & hor_cnt(4 downto 0) );
 
+	-- r/g/b											
 	process( CLK14 )
 	begin
 		if CLK14'event and CLK14 = '1' then
@@ -309,6 +320,7 @@ begin
 		end if;
 	end process;
 
+	-- brightness
 	process( CLK14 )
 	begin
 		if CLK14'event and CLK14 = '1' then
@@ -323,6 +335,7 @@ begin
 		end if;
 	end process;
 
+	-- paper, blank
 	process( CLK14 )
 	begin
 		if CLK14'event and CLK14 = '1' then
@@ -331,7 +344,8 @@ begin
 					attr_r <= attr;
 					shift_r <= shift;
 
-					if ((hor_cnt(5 downto 0) > 38) and (hor_cnt(5 downto 0) < 48)) or ver_cnt(5 downto 1) = 15 then
+					if hor_cnt(5 downto 2) = 10 or hor_cnt(5 downto 2) = 11 or ver_cnt = 31 then
+					--if ((hor_cnt(5 downto 0) > 38) and (hor_cnt(5 downto 0) < 48)) or ver_cnt(5 downto 1) = 15 then
 						blank_r <= '0';
 					else 
 						blank_r <= '1';
@@ -347,6 +361,7 @@ begin
 		end if;
 	end process;
 
+	-- ports, write by CPU
 	process( CLK14 )
 	begin
 		if CLK14'event and CLK14 = '1' then
