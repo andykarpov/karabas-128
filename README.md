@@ -1,3 +1,3 @@
-##Karabas-128.
+Karabas-128.
 
 Yet another ZX Spectrum clone ;)
