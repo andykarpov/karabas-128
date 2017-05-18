@@ -121,7 +121,7 @@ architecture rtl of karabas_128 is
 	signal rom_disable : std_logic := '0';
 	signal ula_disable: std_logic := '0';
 
-	signal sync_mode: std_logic_vector(1 downto 0) := "00";
+	signal sync_mode: std_logic_vector(1 downto 0) := "01";
 		
 begin
 	rom_a <= '0' when A15 = '0' and A14 = '0' else '1';
