@@ -351,7 +351,7 @@ begin
 
 					if (sync_mode = "00" and (hor_cnt(5 downto 2) = 10 or hor_cnt(5 downto 2) = 11 or ver_cnt = 31)) then
 						blank_r <= '0';
-					elsif (sync_mode = "01" and (((hor_cnt(5 downto 0) > 38) and (hor_cnt(5 downto 0) < 48)) or ver_cnt(5 downto 1))) = 15 then
+					elsif (sync_mode = "01" and ((hor_cnt(5 downto 0) > 38 and hor_cnt(5 downto 0) < 48) or ver_cnt(5 downto 1) = 15)) then
 					--if hor_cnt(5 downto 3) = 5 or ver_cnt(5 downto 1) = 15 then
 						blank_r <= '0';
 					else 
