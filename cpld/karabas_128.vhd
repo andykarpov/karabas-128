@@ -120,6 +120,8 @@ architecture rtl of karabas_128 is
 	
 	signal rom_disable : std_logic := '0';
 	signal ula_disable: std_logic := '0';
+
+	signal sync_mode: std_logic_vector(1 downto 0) := "00";
 		
 begin
 	rom_a <= '0' when A15 = '0' and A14 = '0' else '1';
@@ -209,7 +211,7 @@ begin
                     
 					if hor_cnt = 39 then                    
 						if chr_row_cnt = 7 then
-							if ver_cnt = 38 then
+							if (sync_mode = "00" and ver_cnt = 38) or (sync_mode = "01" and ver_cnt = 39) then
 								ver_cnt <= (others => '0');
 								invert <= invert + 1;
 							else
@@ -219,11 +221,12 @@ begin
 						chr_row_cnt <= chr_row_cnt + 1;
 					end if;
 				end if;
+
+				-- h/v sync
+
+				VIDEO_HSYNC <= hsync;
                 
-				if chr_col_cnt = 7 then
-                    
-					VIDEO_HSYNC <= hsync;
-						  
+				if chr_col_cnt = 7 then						  
 					if ver_cnt /= 31 then
 						VIDEO_VSYNC <= '1';
 						VIDEO_SYNC <= hsync;
@@ -237,21 +240,23 @@ begin
                     
 				end if;
             
-				--if chr_col_cnt = 6 and hor_cnt(2 downto 0) = "111" then
-				--	if ver_cnt = 29 and chr_row_cnt = 7 and hor_cnt(5 downto 3) = "100" then
-				--		N_INT <= '0';
-				--	else
-				--		N_INT <= '1';
-				--	end if;
-				--end if;
-
-				if chr_col_cnt = 0 then
-					if ver_cnt = 31 and chr_row_cnt = 0 and hor_cnt(5 downto 3) = "000" then
-						N_INT <= '0';
-					else
-						N_INT <= '1';
+            	-- int
+				if (sync_mode = "00") then
+					if chr_col_cnt = 0 then
+						if ver_cnt = 31 and chr_row_cnt = 0 and hor_cnt(5 downto 3) = "000" then
+							N_INT <= '0';
+						else
+							N_INT <= '1';
+						end if;
 					end if;
-
+				elsif (sync_mode = "01") then
+	    			if chr_col_cnt = 6 and hor_cnt(2 downto 0) = "111" then
+	                    if ver_cnt = 29 and chr_row_cnt = 7 and hor_cnt(5 downto 3) = "100" then
+	                        N_INT <= '0';
+	                    else
+	                        N_INT <= '1';
+	                    end if;
+					end if;
 				end if;
 
 				chr_col_cnt <= chr_col_cnt + 1;
@@ -295,7 +300,7 @@ begin
 		if CLK14'event and CLK14 = '1' then
 			if tick = '1' then
 				if paper_r = '0' then           
-					if( shift_r(7) xor ( attr_r(7) and invert(3) ) ) = '1' then
+					if( shift_r(7) xor ( attr_r(7) and invert(4) ) ) = '1' then
 						VIDEO_B <= attr_r(0);
 						VIDEO_R <= attr_r(1);
 						VIDEO_G <= attr_r(2);
@@ -344,8 +349,10 @@ begin
 					attr_r <= attr;
 					shift_r <= shift;
 
-					if hor_cnt(5 downto 2) = 10 or hor_cnt(5 downto 2) = 11 or ver_cnt = 31 then
-					--if ((hor_cnt(5 downto 0) > 38) and (hor_cnt(5 downto 0) < 48)) or ver_cnt(5 downto 1) = 15 then
+					if (sync_mode = "00" and (hor_cnt(5 downto 2) = 10 or hor_cnt(5 downto 2) = 11 or ver_cnt = 31)) then
+						blank_r <= '0';
+					elsif (sync_mode = "01" and (((hor_cnt(5 downto 0) > 38) and (hor_cnt(5 downto 0) < 48)) or ver_cnt(5 downto 1))) = 15 then
+					--if hor_cnt(5 downto 3) = 5 or ver_cnt(5 downto 1) = 15 then
 						blank_r <= '0';
 					else 
 						blank_r <= '1';
