@@ -23,6 +23,7 @@ entity karabas_128 is
 		
 		-- ZX BUS signals
 		BUS_N_IORQGE : in std_logic := '0';
+		BUS_N_ROMCS: in std_logic := '0';
 
 		-- Buffers
 		WR_BUF	: out std_logic := '0';
@@ -132,7 +133,7 @@ begin
 				"010" when A15 = '1' and A14 = '0' else
 				port_7ffd(2 downto 0);
 
-	N_ROM_CS <= n_is_rom;
+	N_ROM_CS <= '0' when n_is_rom = '0' and BUS_N_ROMCS /= '1' else '1';
 
 	ROM_A14 <= '1' when rom_sel = '1' else '0';
 
