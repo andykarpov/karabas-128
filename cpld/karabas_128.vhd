@@ -20,10 +20,6 @@ entity karabas_128 is
 		A14	: in std_logic;
 		A15	: in std_logic;
 		D : inout std_logic_vector(7 downto 0) := "ZZZZZZZZ";
-
-		-- ZXBUS specific
-		BUS_N_IORQGE	: in std_logic := 'Z'; -- ZX BUS IORQ ULA disable, TODO
-		BUS_N_ROMCS	: in std_logic := 'Z'; -- ZX BUS ROM CS disable
 		
 		-- Buffers
 		WR_BUF	: out std_logic := '0';
@@ -118,9 +114,6 @@ architecture rtl of karabas_128 is
 	signal mic : std_logic := '0';
 	signal port_access: std_logic := '0';
 	
-	signal rom_disable : std_logic := '0';
-	signal ula_disable: std_logic := '0';
-
 	signal sync_mode: std_logic_vector(1 downto 0) := "01";
 		
 begin
@@ -136,12 +129,7 @@ begin
 				"010" when A15 = '1' and A14 = '0' else
 				port_7ffd(2 downto 0);
 
-	--rom_disable <= '1' when BUS_N_ROMCS = '1' else '0';
-	--ula_disable <= '1' when BUS_N_IORQGE = '1' else '0';
-	rom_disable <= '0';
-	ula_disable <= '0';
-		
-	N_ROM_CS <= rom_disable or n_is_rom;
+	N_ROM_CS <= n_is_rom;
 
 	ROM_A14 <= '1' when rom_sel = '1' else '0';
 
@@ -385,7 +373,7 @@ begin
 				end if;
 
 				-- port #FE, write by CPU (read speaker, mic and border attr)
-				if N_WR = '0' and MA(7 downto 0) = "11111110" and ula_disable = '0' then
+				if N_WR = '0' and MA(7 downto 0) = "11111110" then
 					border_attr <= MD(2 downto 0); -- border attr
 					mic <= MD(3); -- MIC
 					sound_out <= MD(4); -- BEEPER
@@ -396,7 +384,7 @@ begin
 	end process;
 	
 	-- ports, read by CPU
-	port_access <= '1' when N_IORQ = '0' and N_RD = '0' and N_M1 = '1' and ula_disable = '0' else '0';
+	port_access <= '1' when N_IORQ = '0' and N_RD = '0' and N_M1 = '1' else '0';
 		D(7 downto 0) <= '1' & ear & '1' & KB(4 downto 0) when port_access = '1' and A(7 downto 0) = "11111110" else -- #FE
 		attr_r when port_access = '1' and A(7 downto 0) = "11111111" else -- #FF
 		"ZZZZZZZZ";
