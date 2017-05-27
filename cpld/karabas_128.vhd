@@ -21,6 +21,9 @@ entity karabas_128 is
 		A15	: in std_logic;
 		D : inout std_logic_vector(7 downto 0) := "ZZZZZZZZ";
 		
+		-- ZX BUS signals
+		BUS_N_IORQGE : in std_logic := '0';
+
 		-- Buffers
 		WR_BUF	: out std_logic := '0';
 		N_RD_BUF_EN	: out std_logic := '1';
@@ -357,7 +360,7 @@ begin
 	end process;
 
 	-- ports, write by CPU
-	process( CLK14 )
+	process( CLK14, N_RESET )
 	begin
 		if CLK14'event and CLK14 = '1' then
 
@@ -384,7 +387,7 @@ begin
 	end process;
 	
 	-- ports, read by CPU
-	port_access <= '1' when N_IORQ = '0' and N_RD = '0' and N_M1 = '1' else '0';
+	port_access <= '1' when N_IORQ = '0' and N_RD = '0' and N_M1 = '1' and BUS_N_IORQGE /= '1' else '0';
 		D(7 downto 0) <= '1' & ear & '1' & KB(4 downto 0) when port_access = '1' and A(7 downto 0) = "11111110" else -- #FE
 		attr_r when port_access = '1' and A(7 downto 0) = "11111111" else -- #FF
 		"ZZZZZZZZ";
