@@ -19,6 +19,10 @@ For more information and assembly instructions please see HOWTOs in [English](ht
 License for this project is **WTFPL**. [More details here](https://github.com/andykarpov/karabas-128/blob/master/LICENSE.md).
 
 
+[![image](https://statics3.seeedstudio.com/assets/img/fusion/gallery_page/gallery_bedge.png)
+](https://www.seeedstudio.com/Karabas-128-rev-A-g-1008690)
+
+
 ### First working device:
 
 ![image](https://github.com/andykarpov/karabas-128/raw/master/docs/progress10.jpg)
