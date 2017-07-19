@@ -169,8 +169,9 @@ begin
 --	AY_BC1	<= '1' when ay_port = '1' and N_M1 = '1' and N_IORQ = '0' and A14 = '1' and A15 = '1' else '0';
 --	AY_BDIR	<= '1' when ay_port = '1' and N_M1 = '1' and N_IORQ = '0' and A15 = '1' and N_WR = '0' else '0';
 
-AY_BC1 <= '1' when N_M1 = '1' and N_IORQ = '0' and A14 = '1' and A15 = '1' and A(1) = '0' else '0';
-AY_BDIR <= '1' when N_IORQ = '0' and A15 = '1' and A(1) = '0' and N_WR = '0' else '0';
+	ay_port <= '1' when A15='1' and A(1) = '0' and BUS_N_IORQGE = '0' and N_IORQ = '0' and N_M1 = '1' else '0';
+	AY_BC1 <= '1' when A14 = '1' and ay_port = '1' else '0';
+	AY_BDIR <= '1' when N_WR = '0' and ay_port = '1' else '0';
 
 	WR_BUF <= '1' when vbus_mode = '0' and chr_col_cnt(0) = '0' else '0';
 		
