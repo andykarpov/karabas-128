@@ -12,9 +12,11 @@ The idea was to make a **cheap** ZX Spectrum 128k clone with minimum components.
 
 ## More info
 
-This is the first fabricated prototype PCB, it just works, it's fully tested, except ZX BUS. Possibly bugs / errors there, need more external devices to test :) 
+This is the first fabricated prototype PCB, it just works, it's fully tested, except small minor issues (please see ERRATA). 
 
-For more information and assembly instructions please see HOWTOs in [English](https://github.com/andykarpov/karabas-128/blob/master/HOWTO-en.md) and [Russian](https://github.com/andykarpov/karabas-128/blob/master/HOWTO-ru.md).
+For more information and assembly instructions please see **HOWTO**s in [English](https://github.com/andykarpov/karabas-128/blob/master/HOWTO-en.md) and [Russian](https://github.com/andykarpov/karabas-128/blob/master/HOWTO-ru.md).
+
+**ERRATA for PCB rev.A:** [English](https://github.com/andykarpov/karabas-128/blob/master/ERRATA-revA-en.md) and [Russian](https://github.com/andykarpov/karabas-128/blob/master/ERRATA-revA-ru.md).
 
 License for this project is **WTFPL**. [More details here](https://github.com/andykarpov/karabas-128/blob/master/LICENSE.md).
 
