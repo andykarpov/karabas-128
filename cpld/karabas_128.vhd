@@ -393,8 +393,12 @@ begin
 	
 	-- ports, read by CPU
 	port_access <= '1' when N_IORQ = '0' and N_RD = '0' and N_M1 = '1' and BUS_N_IORQGE /= '1' else '0';
-		D(7 downto 0) <= '1' & ear & '1' & KB(4 downto 0) when port_access = '1' and A(7 downto 0) = "11111110" else -- #FE
-		attr_r when port_access = '1' and A(7 downto 0) = "11111111" else -- #FF
+		D(7 downto 0) <= 
+			'1' & ear & '1' & KB(4 downto 0) when port_access = '1' 
+			--and A(7 downto 0) = "11111110"
+			and A(0) = '0'
+		else -- #FE
+			attr_r when port_access = '1' and A(7 downto 0) = "11111111" else -- #FF
 		"ZZZZZZZZ";
 
 end;
