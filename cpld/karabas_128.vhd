@@ -117,7 +117,7 @@ architecture rtl of karabas_128 is
 	signal ear : std_logic := '1';
 	signal mic : std_logic := '0';
 	signal port_access: std_logic := '0';
-	
+
 	signal sync_mode: std_logic_vector(1 downto 0) := "01";
 		
 begin
@@ -162,13 +162,6 @@ begin
 	ear <= TAPE_IN;
 
 	AY_CLK	<= chr_col_cnt(1);
---	ay_port	<= '0' when N_WR = '1' and N_RD = '1' else
---					'1' when vbus_mode = '0' and MA(1 downto 0) = "01" else
---					'0' when vbus_mode = '0' else
---					ay_port;
---	AY_BC1	<= '1' when ay_port = '1' and N_M1 = '1' and N_IORQ = '0' and A14 = '1' and A15 = '1' else '0';
---	AY_BDIR	<= '1' when ay_port = '1' and N_M1 = '1' and N_IORQ = '0' and A15 = '1' and N_WR = '0' else '0';
-
 	ay_port <= '1' when A15='1' and A(1) = '0' and BUS_N_IORQGE = '0' and N_IORQ = '0' and N_M1 = '1' else '0';
 	AY_BC1 <= '1' when A14 = '1' and ay_port = '1' else '0';
 	AY_BDIR <= '1' when N_WR = '0' and ay_port = '1' else '0';
@@ -367,33 +360,30 @@ begin
 	-- ports, write by CPU
 	process( CLK14, N_RESET )
 	begin
-		if CLK14'event and CLK14 = '1' then
+		if N_RESET = '0' then
+			port_7ffd <= "000000";
+			sound_out <= '0';
+			mic <= '0';
+		elsif CLK14'event and CLK14 = '1' then 
+		
+			-- port 7ffd, read				
+			if N_WR = '0' and A(1) = '0' and A15 = '0' and port_7ffd(5) = '0' and N_IORQ = '0' and N_M1 = '1' then
+				port_7ffd <= D(5 downto 0);
+			end if;
 
-			if N_RESET = '0' then
-				port_7ffd <= "000000";
-				sound_out <= '0';
-				mic <= '0';
-			elsif tick = '1' and chr_col_cnt(0) = '0' and vbus_mode = '0' and N_IORQ = '0' and N_M1 = '1' then
-
-				-- port 7ffd, read				
-				if N_WR = '0' and MA(1) = '0' and A15 = '0' and port_7ffd(5) = '0' then
-					port_7ffd <= MD(5 downto 0);
-				end if;
-
-				-- port #FE, write by CPU (read speaker, mic and border attr)
-				if N_WR = '0' and MA(7 downto 0) = "11111110" then
-					border_attr <= MD(2 downto 0); -- border attr
-					mic <= MD(3); -- MIC
-					sound_out <= MD(4); -- BEEPER
-				end if;
-				
-			end if;             
-		end if;
+			-- port #FE, write by CPU (read speaker, mic and border attr)
+			if N_WR = '0' and A(0) = '0' and N_IORQ = '0' and N_M1 = '1' then
+				border_attr <= D(2 downto 0); -- border attr
+				mic <= D(3); -- MIC
+				sound_out <= D(4); -- BEEPER
+			end if;
+					
+		end if;             
 	end process;
 	
 	-- ports, read by CPU
 	port_access <= '1' when N_IORQ = '0' and N_RD = '0' and N_M1 = '1' and BUS_N_IORQGE /= '1' else '0';
-		D(7 downto 0) <= '1' & ear & '1' & KB(4 downto 0) when port_access = '1' and A(7 downto 0) = "11111110" else -- #FE
+		D(7 downto 0) <= '1' & ear & '1' & KB(4 downto 0) when port_access = '1' and A(0) = '0' else -- #FE
 		attr_r when port_access = '1' and A(7 downto 0) = "11111111" else -- #FF
 		"ZZZZZZZZ";
 
