@@ -3,6 +3,9 @@ use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
 
 entity karabas_128 is
+	generic(
+		SYNC_MODE : integer := 1 -- 0 for classic mode with contended memory, 1 for pentagon
+	);
 	port(
 		-- Clock 14 MHz
 		CLK14			: in std_logic;
@@ -118,7 +121,10 @@ architecture rtl of karabas_128 is
 	signal mic : std_logic := '0';
 	signal port_access: std_logic := '0';
 
-	signal sync_mode: std_logic_vector(1 downto 0) := "01";
+	signal z80_clk  : std_logic := '0';
+	signal page_cont  : std_logic;
+	signal block_reg  : std_logic;
+	signal count_block  : std_logic;
 		
 begin
 	rom_a <= '0' when A15 = '0' and A14 = '0' else '1';
@@ -168,21 +174,51 @@ begin
 
 	WR_BUF <= '1' when vbus_mode = '0' and chr_col_cnt(0) = '0' else '0';
 		
-	-- Z80 clock 3.5 MHz
-	process( CLK14 )
+--	-- Z80 clock 3.5 MHz
+--	process( CLK14 )
+--	begin
+--	-- rising edge of CLK14
+--		if CLK14'event and CLK14 = '1' then
+--			if tick = '1' then
+--				if chr_col_cnt(0) = '0' then 
+--					CLK_CPU <= '0';
+--				else
+--					CLK_CPU <= '1';
+--				end if;
+--			end if;
+--		end if;     
+--	end process;
+	
+	process( z80_clk )
 	begin
-	-- rising edge of CLK14
-		if CLK14'event and CLK14 = '1' then
-			if tick = '1' then
-				if chr_col_cnt(0) = '0' then 
-					CLK_CPU <= '0';
-				else
-					CLK_CPU <= '1';
-				end if;
+
+		if z80_clk'event and z80_clk = '1' then
+			if n_mREQ='0' or (a(0)='0' and n_iORQ='0')then
+					block_reg <='0';
+			else
+					block_reg <= '1';
 			end if;
 		end if;     
 	end process;
 
+	page_cont <= '1' when (a(0)='0' and n_iORQ='0') or ram_page="101" else '0';
+	count_block <= not (chr_col_cnt(2) and hor_cnt(0));
+
+
+	process( CLK14 )
+	begin
+	-- rising edge of CLK14
+		if CLK14'event and CLK14 = '1' then
+			if page_cont='1' and paper='0' and block_reg='1' and count_block='1' and SYNC_MODE=0 then
+				z80_clk <= '0';
+			else
+				z80_clk <= chr_col_cnt(0);
+			end if;
+		end if;     
+	end process;
+
+CLK_CPU <= z80_clk;
+	
 	-- sync, counters
 	process( CLK14 )
 	begin
@@ -200,7 +236,7 @@ begin
                     
 					if hor_cnt = 39 then                    
 						if chr_row_cnt = 7 then
-							if (sync_mode = "00" and ver_cnt = 38) or (sync_mode = "01" and ver_cnt = 39) then
+							if (SYNC_MODE = 0 and ver_cnt = 38) or (SYNC_MODE = 1 and ver_cnt = 39) then
 								ver_cnt <= (others => '0');
 								invert <= invert + 1;
 							else
@@ -230,7 +266,7 @@ begin
 				end if;
             
             	-- int
-				if (sync_mode = "00") then
+				if (SYNC_MODE = 0) then
 					if chr_col_cnt = 0 then
 						if ver_cnt = 31 and chr_row_cnt = 0 and hor_cnt(5 downto 3) = "000" then
 							N_INT <= '0';
@@ -238,7 +274,7 @@ begin
 							N_INT <= '1';
 						end if;
 					end if;
-				elsif (sync_mode = "01") then
+				elsif (SYNC_MODE = 1) then
 	    			if chr_col_cnt = 6 and hor_cnt(2 downto 0) = "111" then
 	                    if ver_cnt = 29 and chr_row_cnt = 7 and hor_cnt(5 downto 3) = "100" then
 	                        N_INT <= '0';
@@ -338,9 +374,9 @@ begin
 					attr_r <= attr;
 					shift_r <= shift;
 
-					if (sync_mode = "00" and (hor_cnt(5 downto 2) = 10 or hor_cnt(5 downto 2) = 11 or ver_cnt = 31)) then
+					if (SYNC_MODE = 0 and (hor_cnt(5 downto 2) = 10 or hor_cnt(5 downto 2) = 11 or ver_cnt = 31)) then
 						blank_r <= '0';
-					elsif (sync_mode = "01" and ((hor_cnt(5 downto 0) > 38 and hor_cnt(5 downto 0) < 48) or ver_cnt(5 downto 1) = 15)) then
+					elsif (SYNC_MODE = 1 and ((hor_cnt(5 downto 0) > 38 and hor_cnt(5 downto 0) < 48) or ver_cnt(5 downto 1) = 15)) then
 					--if hor_cnt(5 downto 3) = 5 or ver_cnt(5 downto 1) = 15 then
 						blank_r <= '0';
 					else 
@@ -382,7 +418,7 @@ begin
 	end process;
 	
 	-- ports, read by CPU
-	port_access <= '1' when N_IORQ = '0' and N_RD = '0' and N_M1 = '1' and BUS_N_IORQGE /= '1' else '0';
+	port_access <= '1' when N_IORQ = '0' and N_RD = '0' and N_M1 = '1' and BUS_N_IORQGE = '0' else '0';
 		D(7 downto 0) <= '1' & ear & '1' & KB(4 downto 0) when port_access = '1' and A(0) = '0' else -- #FE
 		attr_r when port_access = '1' and A(7 downto 0) = "11111111" else -- #FF
 		"ZZZZZZZZ";
