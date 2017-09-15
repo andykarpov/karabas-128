@@ -6,8 +6,7 @@
 
 PROJECT = karabas_128
 TOP_LEVEL_ENTITY = karabas_128
-#SYNC_MODE = classic 
-SYNC_MODE = pentagon 
+SYNC_MODE = 0
 
 ###################################################################
 # Part, Family, Boardfile revA or revB, etc
@@ -28,12 +27,7 @@ PWD := $(shell pwd)
 QUARTUS_HOME := $(shell dirname `which quartus_pgm`)
 PROJECT_FILE = $(PROJECT)_$(BOARDFILE)
 ASSIGNMENT_FILES = $(PROJECT_FILE).qpf $(PROJECT_FILE).qsf
-
-ifeq ($(SYNC_MODE), classic)
-SYNC_MODE_PARAM = set_parameter -name SYNC_MODE 0
-else
-SYNC_MODE_PARAM = set_parameter -name SYNC_MODE 1
-endif
+SYNC_MODE_PARAM = set_parameter -name SYNC_MODE $(SYNC_MODE)
 
 ###################################################################
 # Main Targets
