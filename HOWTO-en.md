@@ -44,3 +44,15 @@ Warning: Please do not put any DIP IC's into their sockets on the PCB before a f
 Correctly soldered and programmed board does not require any additional adjustments.
  
 All other tweaks could be performed via changing the CPLD firmware, as described above.
+
+## Upgrade to support mode switch
+
+It is posible to switch between pentagon and ula48 (with contended memory emulation) screen modes.
+
+To enable this feature one small hardware patch should be applied, like described on the photo below. A diode should be soldered between A11 and N_RESET signals, anode to A11 and cathode to N_RESET.
+
+Then you'll be able to switch using hotkeys RESET+1 for pentagon mode and RESET+2 for ula48 mode.
+
+Special thanks goes to **solegstar** from zx-pk.ru!!!
+
+![image](https://github.com/andykarpov/karabas-128/raw/master/docs/mode_switch_patch.jpg)
