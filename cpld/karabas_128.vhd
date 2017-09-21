@@ -3,9 +3,6 @@ use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
 
 entity karabas_128 is
-	generic(
-		SYNC_MODE : integer := 1 -- 0 for classic mode with contended memory, 1 for pentagon
-	);
 	port(
 		-- Clock 14 MHz
 		CLK14			: in std_logic;
@@ -125,6 +122,8 @@ architecture rtl of karabas_128 is
 	signal page_cont  : std_logic;
 	signal block_reg  : std_logic;
 	signal count_block  : std_logic;
+	
+	signal sync_mode  : std_logic := '1'; -- 0 for classic mode with contended memory, 1 for pentagon
 		
 begin
 	rom_a <= '0' when A15 = '0' and A14 = '0' else '1';
@@ -209,7 +208,7 @@ begin
 	begin
 	-- rising edge of CLK14
 		if CLK14'event and CLK14 = '1' then
-			if page_cont='1' and paper='0' and block_reg='1' and count_block='1' and SYNC_MODE=0 then
+			if page_cont='1' and paper='0' and block_reg='1' and count_block='1' and SYNC_MODE='0' then
 				z80_clk <= '0';
 			else
 				z80_clk <= chr_col_cnt(0);
@@ -236,7 +235,7 @@ CLK_CPU <= z80_clk;
                     
 					if hor_cnt = 39 then                    
 						if chr_row_cnt = 7 then
-							if (SYNC_MODE = 0 and ver_cnt = 38) or (SYNC_MODE = 1 and ver_cnt = 39) then
+							if (SYNC_MODE = '0' and ver_cnt = 38) or (SYNC_MODE = '1' and ver_cnt = 39) then
 								ver_cnt <= (others => '0');
 								invert <= invert + 1;
 							else
@@ -266,7 +265,7 @@ CLK_CPU <= z80_clk;
 				end if;
             
             	-- int
-				if (SYNC_MODE = 0) then
+				if (SYNC_MODE = '0') then
 					if chr_col_cnt = 0 then
 						if ver_cnt = 31 and chr_row_cnt = 0 and hor_cnt(5 downto 3) = "000" then
 							N_INT <= '0';
@@ -274,7 +273,7 @@ CLK_CPU <= z80_clk;
 							N_INT <= '1';
 						end if;
 					end if;
-				elsif (SYNC_MODE = 1) then
+				elsif (SYNC_MODE = '1') then
 	    			if chr_col_cnt = 6 and hor_cnt(2 downto 0) = "111" then
 	                    if ver_cnt = 29 and chr_row_cnt = 7 and hor_cnt(5 downto 3) = "100" then
 	                        N_INT <= '0';
@@ -290,6 +289,20 @@ CLK_CPU <= z80_clk;
 		end if;
 	end process;
 
+	-- video mode selector
+	process( CLK14 )
+	begin
+		if CLK14'event and CLK14 = '1' then 
+			if N_RESET='0' then
+				if KB="11110" then -- "1" key pressed
+					sync_mode <= '1'; -- pentagon
+				elsif KB="11101" then -- "2" key pressed
+					sync_mode <= '0'; -- classic
+				end if;
+			end if;
+		end if;
+	end process;	
+	
 	-- video mem
 	process( CLK14 )
 	begin
@@ -374,9 +387,9 @@ CLK_CPU <= z80_clk;
 					attr_r <= attr;
 					shift_r <= shift;
 
-					if (SYNC_MODE = 0 and (hor_cnt(5 downto 2) = 10 or hor_cnt(5 downto 2) = 11 or ver_cnt = 31)) then
+					if (SYNC_MODE = '0' and (hor_cnt(5 downto 2) = 10 or hor_cnt(5 downto 2) = 11 or ver_cnt = 31)) then
 						blank_r <= '0';
-					elsif (SYNC_MODE = 1 and ((hor_cnt(5 downto 0) > 38 and hor_cnt(5 downto 0) < 48) or ver_cnt(5 downto 1) = 15)) then
+					elsif (SYNC_MODE = '1' and ((hor_cnt(5 downto 0) > 38 and hor_cnt(5 downto 0) < 48) or ver_cnt(5 downto 1) = 15)) then
 					--if hor_cnt(5 downto 3) = 5 or ver_cnt(5 downto 1) = 15 then
 						blank_r <= '0';
 					else 

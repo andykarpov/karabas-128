@@ -6,7 +6,6 @@
 
 PROJECT = karabas_128
 TOP_LEVEL_ENTITY = karabas_128
-SYNC_MODE = 0
 
 ###################################################################
 # Part, Family, Boardfile revA or revB, etc
@@ -27,7 +26,6 @@ PWD := $(shell pwd)
 QUARTUS_HOME := $(shell dirname `which quartus_pgm`)
 PROJECT_FILE = $(PROJECT)_$(BOARDFILE)
 ASSIGNMENT_FILES = $(PROJECT_FILE).qpf $(PROJECT_FILE).qsf
-SYNC_MODE_PARAM = set_parameter -name SYNC_MODE $(SYNC_MODE)
 
 ###################################################################
 # Main Targets
@@ -108,7 +106,6 @@ $(ASSIGNMENT_FILES):
 
 	quartus_sh --prepare -f $(FAMILY) -d $(PART) -t $(TOP_LEVEL_ENTITY) $(PROJECT_FILE) 
 	-cat $(BOARDFILE) >> $(PROJECT_FILE).qsf
-	-echo "$(SYNC_MODE_PARAM)\n" >> $(PROJECT_FILE).qsf
 map.chg:
 	$(STAMP) map.chg
 fit.chg:
