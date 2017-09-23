@@ -45,17 +45,17 @@ entity karabas_128 is
 		ROM_A14 : out std_logic := '0';
 		
 		-- Video
-		VIDEO_SYNC    : out std_logic := '1';     
-		VIDEO_HSYNC    : out std_logic := '1';     
-		VIDEO_VSYNC    : out std_logic := '1';     
+		VIDEO_SYNC    : out std_logic := '1';
+		VIDEO_HSYNC    : out std_logic := '1';
+		VIDEO_VSYNC    : out std_logic := '1';
 		VIDEO_R       : out std_logic := '0';
 		VIDEO_G       : out std_logic := '0';
-		VIDEO_B       : out std_logic := '0';   
-		VIDEO_I       : out std_logic := '0';     
+		VIDEO_B       : out std_logic := '0';
+		VIDEO_I       : out std_logic := '0';
 
 		-- Interfaces 
 		TAPE_IN 		: in std_logic;
-		TAPE_OUT		: out std_logic := '1';				
+		TAPE_OUT		: out std_logic := '1';
 		SPEAKER	: out std_logic := '1';
 
 		-- AY
@@ -64,7 +64,7 @@ entity karabas_128 is
 		AY_BDIR	: out std_logic;
 
 		-- Keyboard
-		KB	: in std_logic_vector(4 downto 0) := "ZZZZZ"
+		KB	: in std_logic_vector(4 downto 0) := "11111"
 	);
 end karabas_128;
 
@@ -73,15 +73,15 @@ architecture rtl of karabas_128 is
 	signal tick     : std_logic := '0';
 	signal invert   : unsigned(4 downto 0) := "00000";
 
-	signal chr_col_cnt : unsigned(2 downto 0) := "000";    -- Character column counter
-	signal chr_row_cnt : unsigned(2 downto 0) := "000";    -- Character row counter
+	signal chr_col_cnt : unsigned(2 downto 0) := "000"; -- Character column counter
+	signal chr_row_cnt : unsigned(2 downto 0) := "000"; -- Character row counter
 
 	signal hor_cnt  : unsigned(5 downto 0) := "000000"; -- Horizontal counter
 	signal ver_cnt  : unsigned(5 downto 0) := "000000"; -- Vertical counter
 
 	signal attr     : std_logic_vector(7 downto 0);
 	signal shift    : std_logic_vector(7 downto 0);
-    
+	
 	signal paper_r  : std_logic;
 	signal blank_r  : std_logic;
 	signal attr_r   : std_logic_vector(7 downto 0);
@@ -90,7 +90,7 @@ architecture rtl of karabas_128 is
 	signal border_attr: std_logic_vector(2 downto 0) := "000";
 	signal port_7ffd	: std_logic_vector(5 downto 0);
 	signal ay_port	: std_logic := '0';
-        
+		
 	signal vbus_req		: std_logic := '1';
 	signal vbus_ack		: std_logic := '1';
 	signal vbus_mode	: std_logic := '1';	
@@ -123,8 +123,10 @@ architecture rtl of karabas_128 is
 	signal block_reg  : std_logic;
 	signal count_block  : std_logic;
 	
-	signal sync_mode  : std_logic := '1'; -- 0 for classic mode with contended memory, 1 for pentagon
-		
+	signal reset_cnt : unsigned(2 downto 0) := "000";
+	signal SYNC_MODE  : std_logic; -- 0 for classic mode with contended memory, 1 for pentagon
+	signal booted : std_logic := '0';
+
 begin
 	rom_a <= '0' when A15 = '0' and A14 = '0' else '1';
 	
@@ -190,58 +192,59 @@ begin
 	
 	process( z80_clk )
 	begin
-
 		if z80_clk'event and z80_clk = '1' then
 			if n_mREQ='0' or (a(0)='0' and n_iORQ='0')then
-					block_reg <='0';
+				block_reg <='0';
 			else
-					block_reg <= '1';
+				block_reg <= '1';
 			end if;
-		end if;     
+		end if;
 	end process;
 
 	page_cont <= '1' when (a(0)='0' and n_iORQ='0') or ram_page="101" else '0';
 	count_block <= not (chr_col_cnt(2) and hor_cnt(0));
 
-
 	process( CLK14 )
 	begin
 	-- rising edge of CLK14
 		if CLK14'event and CLK14 = '1' then
-			if page_cont='1' and paper='0' and block_reg='1' and count_block='1' and SYNC_MODE='0' then
-				z80_clk <= '0';
-			else
+			if tick = '1' then
 				z80_clk <= chr_col_cnt(0);
-			end if;
-		end if;     
+				if page_cont='1' and paper='0' and block_reg='1' and count_block='1' and SYNC_MODE='0' then
+					z80_clk <= '0';
+				else
+					z80_clk <= chr_col_cnt(0);
+				end if;
+		   end if;
+		end if;
 	end process;
 
-CLK_CPU <= z80_clk;
+	CLK_CPU <= z80_clk;
 	
 	-- sync, counters
 	process( CLK14 )
 	begin
 		if CLK14'event and CLK14 = '1' then
-        
+		
 			if tick = '1' then
-            
+			
 				if chr_col_cnt = 7 then
-                
+				
 					if hor_cnt = 55 then
 						hor_cnt <= (others => '0');
 					else
 						hor_cnt <= hor_cnt + 1;
 					end if;
-                    
-					if hor_cnt = 39 then                    
+					
+					if hor_cnt = 39 then
 						if chr_row_cnt = 7 then
 							if (SYNC_MODE = '0' and ver_cnt = 38) or (SYNC_MODE = '1' and ver_cnt = 39) then
 								ver_cnt <= (others => '0');
 								invert <= invert + 1;
 							else
 								ver_cnt <= ver_cnt + 1;
-							end if;                         
-						end if;                     
+							end if;
+						end if;
 						chr_row_cnt <= chr_row_cnt + 1;
 					end if;
 				end if;
@@ -249,8 +252,8 @@ CLK_CPU <= z80_clk;
 				-- h/v sync
 
 				VIDEO_HSYNC <= hsync;
-                
-				if chr_col_cnt = 7 then						  
+				
+				if chr_col_cnt = 7 then
 					if ver_cnt /= 31 then
 						VIDEO_VSYNC <= '1';
 						VIDEO_SYNC <= hsync;
@@ -261,10 +264,10 @@ CLK_CPU <= z80_clk;
 						VIDEO_VSYNC <= '1';
 						VIDEO_SYNC <= vsync1;
 					end if;
-                    
+					
 				end if;
-            
-            	-- int
+			
+				-- int
 				if (SYNC_MODE = '0') then
 					if chr_col_cnt = 0 then
 						if ver_cnt = 31 and chr_row_cnt = 0 and hor_cnt(5 downto 3) = "000" then
@@ -274,12 +277,12 @@ CLK_CPU <= z80_clk;
 						end if;
 					end if;
 				elsif (SYNC_MODE = '1') then
-	    			if chr_col_cnt = 6 and hor_cnt(2 downto 0) = "111" then
-	                    if ver_cnt = 29 and chr_row_cnt = 7 and hor_cnt(5 downto 3) = "100" then
-	                        N_INT <= '0';
-	                    else
-	                        N_INT <= '1';
-	                    end if;
+					if chr_col_cnt = 6 and hor_cnt(2 downto 0) = "111" then
+						if ver_cnt = 29 and chr_row_cnt = 7 and hor_cnt(5 downto 3) = "100" then
+							N_INT <= '0';
+						else
+							N_INT <= '1';
+						end if;
 					end if;
 				end if;
 
@@ -290,18 +293,23 @@ CLK_CPU <= z80_clk;
 	end process;
 
 	-- video mode selector
-	process( CLK14 )
+	process( CLK14, KB )
 	begin
-		if CLK14'event and CLK14 = '1' then 
-			if N_RESET='0' then
-				if KB="11110" then -- "1" key pressed
-					sync_mode <= '1'; -- pentagon
-				elsif KB="11101" then -- "2" key pressed
-					sync_mode <= '0'; -- classic
+		if CLK14'event and CLK14 = '1' then
+			if tick = '1' then
+				if booted = '0' then
+					SYNC_MODE <= '1';
+					booted <= '1';
+				elsif N_RESET = '0' and booted = '1' then
+					if KB="11110" then -- "1" key pressed
+						SYNC_MODE <= '1'; -- pentagon
+					elsif KB="11101" then -- "2" key pressed
+						SYNC_MODE <= '0'; -- classic
+					end if;
 				end if;
 			end if;
 		end if;
-	end process;	
+	end process;
 	
 	-- video mem
 	process( CLK14 )
@@ -315,7 +323,7 @@ CLK_CPU <= z80_clk;
 					else
 						attr  <= MD;
 					end if;
-				end if;				
+				end if;
 				
 				if vbus_req = '0' and vbus_ack = '1' then
 					vbus_mode <= '0';
@@ -327,12 +335,12 @@ CLK_CPU <= z80_clk;
 			end if;
 		end if;
 	end process;
-    
+	
 	MA <= ( others => 'Z' ) when vbus_mode = '0' else
-											std_logic_vector( "0" & ver_cnt(4 downto 3) & chr_row_cnt & ver_cnt(2 downto 0) & hor_cnt(4 downto 0) ) when vid_rd = '0' else
-											std_logic_vector( "0110" & ver_cnt(4 downto 0) & hor_cnt(4 downto 0) );
+		std_logic_vector( "0" & ver_cnt(4 downto 3) & chr_row_cnt & ver_cnt(2 downto 0) & hor_cnt(4 downto 0) ) when vid_rd = '0' else
+		std_logic_vector( "0110" & ver_cnt(4 downto 0) & hor_cnt(4 downto 0) );
 
-	-- r/g/b											
+	-- r/g/b
 	process( CLK14 )
 	begin
 		if CLK14'event and CLK14 = '1' then
@@ -358,7 +366,7 @@ CLK_CPU <= z80_clk;
 						VIDEO_G <= border_attr(2);
 					end if;
 				end if;
-			end if;             
+			end if;
 
 		end if;
 	end process;
@@ -373,7 +381,7 @@ CLK_CPU <= z80_clk;
 				else
 					VIDEO_I <= '0';
 				end if;
-			end if;			
+			end if;
 
 		end if;
 	end process;
@@ -390,12 +398,12 @@ CLK_CPU <= z80_clk;
 					if (SYNC_MODE = '0' and (hor_cnt(5 downto 2) = 10 or hor_cnt(5 downto 2) = 11 or ver_cnt = 31)) then
 						blank_r <= '0';
 					elsif (SYNC_MODE = '1' and ((hor_cnt(5 downto 0) > 38 and hor_cnt(5 downto 0) < 48) or ver_cnt(5 downto 1) = 15)) then
-					--if hor_cnt(5 downto 3) = 5 or ver_cnt(5 downto 1) = 15 then
+					--elsif (SYNC_MODE = '1' and (hor_cnt(5 downto 3) = 5 or ver_cnt(5 downto 1) = 15)) then
 						blank_r <= '0';
 					else 
 						blank_r <= '1';
 					end if;
-                    
+					
 					paper_r <= paper;
 				else
 					shift_r(7 downto 1) <= shift_r(6 downto 0);
@@ -413,21 +421,22 @@ CLK_CPU <= z80_clk;
 			port_7ffd <= "000000";
 			sound_out <= '0';
 			mic <= '0';
+			--border_attr <= "000";
 		elsif CLK14'event and CLK14 = '1' then 
-		
-			-- port 7ffd, read				
-			if N_WR = '0' and A(1) = '0' and A15 = '0' and port_7ffd(5) = '0' and N_IORQ = '0' and N_M1 = '1' then
-				port_7ffd <= D(5 downto 0);
-			end if;
+			if tick = '1' then
+				-- port 7ffd, read				
+				if N_WR = '0' and A(1) = '0' and A15 = '0' and port_7ffd(5) = '0' and N_IORQ = '0' and N_M1 = '1' then
+					port_7ffd <= D(5 downto 0);
+				end if;
 
-			-- port #FE, write by CPU (read speaker, mic and border attr)
-			if N_WR = '0' and A(0) = '0' and N_IORQ = '0' and N_M1 = '1' then
-				border_attr <= D(2 downto 0); -- border attr
-				mic <= D(3); -- MIC
-				sound_out <= D(4); -- BEEPER
+				-- port #FE, write by CPU (read speaker, mic and border attr)
+				if N_WR = '0' and A(0) = '0' and N_IORQ = '0' and N_M1 = '1' then
+					border_attr <= D(2 downto 0); -- border attr
+					mic <= D(3); -- MIC
+					sound_out <= D(4); -- BEEPER
+				end if;
 			end if;
-					
-		end if;             
+		end if;
 	end process;
 	
 	-- ports, read by CPU

@@ -124,4 +124,3 @@ set_location_assignment PIN_92 -to VIDEO_I
 set_location_assignment PIN_98 -to VIDEO_SYNC
 set_location_assignment PIN_83 -to VIDEO_G
 set_location_assignment PIN_81 -to VIDEO_R
-

@@ -18,7 +18,7 @@
 #
 # Quartus II 32-bit
 # Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
-# Date created = 22:52:51  September 21, 2017
+# Date created = 01:02:36  September 24, 2017
 #
 # -------------------------------------------------------------------------- #
 #
@@ -40,7 +40,7 @@ set_global_assignment -name FAMILY MAX7000S
 set_global_assignment -name DEVICE "EPM7128STC100-15"
 set_global_assignment -name TOP_LEVEL_ENTITY karabas_128
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION "13.0 SP1"
-set_global_assignment -name PROJECT_CREATION_TIME_DATE "22:52:51  SEPTEMBER 21, 2017"
+set_global_assignment -name PROJECT_CREATION_TIME_DATE "01:02:36  SEPTEMBER 24, 2017"
 set_global_assignment -name LAST_QUARTUS_VERSION "13.0 SP1"
 set_global_assignment -name DEVICE_FILTER_PIN_COUNT 100
 set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR "-1"
@@ -167,4 +167,3 @@ set_location_assignment PIN_92 -to VIDEO_I
 set_location_assignment PIN_98 -to VIDEO_SYNC
 set_location_assignment PIN_83 -to VIDEO_G
 set_location_assignment PIN_81 -to VIDEO_R
-
