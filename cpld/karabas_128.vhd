@@ -99,9 +99,12 @@ architecture rtl of karabas_128 is
 	signal vid_rd	: std_logic := '0';
 	
 	signal paper     : std_logic;
-	signal hsync     : std_logic;
-	signal vsync1    : std_logic;
-	signal vsync2    : std_logic;
+
+	signal hsync     : std_logic := '1';
+	signal hsync1    : std_logic := '1';
+	signal vsync     : std_logic := '1';
+	signal vsync1    : std_logic := '1';
+	signal vsync2    : std_logic := '1';
 
 	signal rom_a	 : std_logic;
 	signal vram_acc		: std_logic;
@@ -160,9 +163,13 @@ begin
 
 	paper <= '0' when hor_cnt(5) = '0' and ver_cnt(5) = '0' and ( ver_cnt(4) = '0' or ver_cnt(3) = '0' ) else '1';      
 
-	hsync <= '0' when hor_cnt(5 downto 2) = "1010" else '1';
+	hsync1 <= '0' when hor_cnt(5 downto 2) = "1010" else '1';
 	vsync1 <= '0' when hor_cnt(5 downto 1) = "00110" or hor_cnt(5 downto 1) = "10100" else '1';
 	vsync2 <= '1' when hor_cnt(5 downto 2) = "0010" or hor_cnt(5 downto 2) = "1001" else '0';
+
+	VIDEO_HSYNC <= hsync;
+	VIDEO_VSYNC <= vsync;
+	VIDEO_SYNC <= not (vsync xor hsync);
 	
 	SPEAKER <= sound_out;
 	TAPE_OUT <= mic;
@@ -251,18 +258,14 @@ begin
 
 				-- h/v sync
 
-				VIDEO_HSYNC <= hsync;
-				
 				if chr_col_cnt = 7 then
+					hsync <= hsync1;
 					if ver_cnt /= 31 then
-						VIDEO_VSYNC <= '1';
-						VIDEO_SYNC <= hsync;
+						vsync <= '1';
 					elsif chr_row_cnt = 3 or chr_row_cnt = 4 or ( chr_row_cnt = 5 and ( hor_cnt >= 40 or hor_cnt < 12 ) ) then
-						VIDEO_VSYNC <= '0';
-						VIDEO_SYNC <= vsync2;
-					else
-						VIDEO_VSYNC <= '1';
-						VIDEO_SYNC <= vsync1;
+						vsync <= '0';
+					else 
+						vsync <= '1';
 					end if;
 					
 				end if;
