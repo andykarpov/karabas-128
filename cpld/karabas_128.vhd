@@ -103,8 +103,6 @@ architecture rtl of karabas_128 is
 	signal hsync     : std_logic := '1';
 	signal hsync1    : std_logic := '1';
 	signal vsync     : std_logic := '1';
-	signal vsync1    : std_logic := '1';
-	signal vsync2    : std_logic := '1';
 
 	signal rom_a	 : std_logic;
 	signal vram_acc		: std_logic;
@@ -126,7 +124,6 @@ architecture rtl of karabas_128 is
 	signal block_reg  : std_logic;
 	signal count_block  : std_logic;
 	
-	signal reset_cnt : unsigned(2 downto 0) := "000";
 	signal SYNC_MODE  : std_logic; -- 0 for classic mode with contended memory, 1 for pentagon
 	signal booted : std_logic := '0';
 
@@ -164,11 +161,13 @@ begin
 	paper <= '0' when hor_cnt(5) = '0' and ver_cnt(5) = '0' and ( ver_cnt(4) = '0' or ver_cnt(3) = '0' ) else '1';      
 
 	hsync1 <= '0' when hor_cnt(5 downto 2) = "1010" else '1';
-	vsync1 <= '0' when hor_cnt(5 downto 1) = "00110" or hor_cnt(5 downto 1) = "10100" else '1';
-	vsync2 <= '1' when hor_cnt(5 downto 2) = "0010" or hor_cnt(5 downto 2) = "1001" else '0';
 
-	VIDEO_HSYNC <= hsync;
-	VIDEO_VSYNC <= vsync;
+	--VIDEO_HSYNC <= hsync;
+	--VIDEO_VSYNC <= vsync;
+	--VIDEO_SYNC <= not (vsync xor hsync);
+
+	VIDEO_HSYNC <= not (vsync xor hsync);
+	VIDEO_VSYNC <= '1';
 	VIDEO_SYNC <= not (vsync xor hsync);
 	
 	SPEAKER <= sound_out;
