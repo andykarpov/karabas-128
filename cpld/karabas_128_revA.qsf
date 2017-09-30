@@ -18,7 +18,7 @@
 #
 # Quartus II 32-bit
 # Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
-# Date created = 11:31:59  September 25, 2017
+# Date created = 18:02:37  September 30, 2017
 #
 # -------------------------------------------------------------------------- #
 #
@@ -40,7 +40,7 @@ set_global_assignment -name FAMILY MAX7000S
 set_global_assignment -name DEVICE "EPM7128STC100-15"
 set_global_assignment -name TOP_LEVEL_ENTITY karabas_128
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION "13.0 SP1"
-set_global_assignment -name PROJECT_CREATION_TIME_DATE "11:31:59  SEPTEMBER 25, 2017"
+set_global_assignment -name PROJECT_CREATION_TIME_DATE "18:02:37  SEPTEMBER 30, 2017"
 set_global_assignment -name LAST_QUARTUS_VERSION "13.0 SP1"
 set_global_assignment -name DEVICE_FILTER_PIN_COUNT 100
 set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR "-1"
@@ -50,10 +50,6 @@ set_global_assignment -name EDA_SIMULATION_TOOL "ModelSim-Altera (VHDL)"
 set_global_assignment -name EDA_OUTPUT_DATA_FORMAT VHDL -section_id eda_simulation
 set_global_assignment -name MAX7000_DEVICE_IO_STANDARD TTL
 
-set_location_assignment PIN_62 -to TCK
-set_location_assignment PIN_4 -to TDI
-set_location_assignment PIN_73 -to TDO
-set_location_assignment PIN_15 -to TMS
 set_location_assignment PIN_87 -to CLK14
 set_location_assignment PIN_57 -to MD[0]
 set_location_assignment PIN_55 -to MD[1]

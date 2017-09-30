@@ -3,6 +3,17 @@ use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
 
 entity karabas_128 is
+	generic(
+		field_width : integer := 448;
+		lines_pentagon : integer := 320;
+		lines_classic : integer := 312;
+		paper_width : integer := 256;
+		paper_height : integer := 192;
+		border_h : integer := 48;
+		border_v : integer := 64;
+		hsync_pulse : integer := 32;
+		vsync_pulse : integer := 16
+	);
 	port(
 		-- Clock 14 MHz
 		CLK14			: in std_logic;
@@ -73,11 +84,8 @@ architecture rtl of karabas_128 is
 	signal tick     : std_logic := '0';
 	signal invert   : unsigned(4 downto 0) := "00000";
 
-	signal chr_col_cnt : unsigned(2 downto 0) := "000"; -- Character column counter
-	signal chr_row_cnt : unsigned(2 downto 0) := "000"; -- Character row counter
-
-	signal hor_cnt  : unsigned(5 downto 0) := "000000"; -- Horizontal counter
-	signal ver_cnt  : unsigned(5 downto 0) := "000000"; -- Vertical counter
+	signal h_cnt  : unsigned(8 downto 0) := "000000000"; -- Horizontal counter
+	signal v_cnt  : unsigned(8 downto 0) := "000000000"; -- Vertical counter
 
 	signal attr     : std_logic_vector(7 downto 0);
 	signal shift    : std_logic_vector(7 downto 0);
@@ -100,11 +108,8 @@ architecture rtl of karabas_128 is
 	
 	signal paper     : std_logic;
 
-	signal hsync     : std_logic := '1';
-	signal hsync1    : std_logic := '1';
-	signal vsync     : std_logic := '1';
-	signal vsync1    : std_logic := '1';
-	signal vsync2    : std_logic := '1';
+	signal hsync : std_logic := '1';
+	signal vsync : std_logic := '1';
 
 	signal rom_a	 : std_logic;
 	signal vram_acc		: std_logic;
@@ -126,9 +131,10 @@ architecture rtl of karabas_128 is
 	signal block_reg  : std_logic;
 	signal count_block  : std_logic;
 	
-	signal reset_cnt : unsigned(2 downto 0) := "000";
 	signal SYNC_MODE  : std_logic; -- 0 for classic mode with contended memory, 1 for pentagon
 	signal booted : std_logic := '0';
+
+	signal int_cnt : unsigned(6 downto 0) := "1111111";
 
 begin
 	rom_a <= '0' when A15 = '0' and A14 = '0' else '1';
@@ -152,55 +158,37 @@ begin
 	RAM_A16 <= ram_page(2) when vbus_mode = '0' else '1';
 
 	vbus_req <= '0' when ( N_MREQ = '0' or N_IORQ = '0' ) and ( N_WR = '0' or N_RD = '0' ) else '1';
-	vbus_rdy <= '0' when tick = '0' or chr_col_cnt(0) = '0' else '1';
+	vbus_rdy <= '0' when tick = '0' or h_cnt(0) = '0' else '1';
 	N_A_GATE_EN <= vbus_mode;
 	
 	N_RD_BUF_EN <= '0' when n_is_ram = '0' and N_RD = '0' else '1';	
 	N_WR_BUF_EN <= '0' when vbus_mode = '0' and ((n_is_ram = '0' or (N_IORQ = '0' and N_M1 = '1')) and N_WR = '0') else '1';
 	
 	N_MRD <= '0' when (vbus_mode = '1' and vbus_rdy = '0') or (vbus_mode = '0' and N_RD = '0' and N_MREQ = '0') else '1';  
-	N_MWR <= '0' when vbus_mode = '0' and n_is_ram = '0' and N_WR = '0' and chr_col_cnt(0) = '0' else '1';
+	N_MWR <= '0' when vbus_mode = '0' and n_is_ram = '0' and N_WR = '0' and h_cnt(0) = '0' else '1';
 
-	paper <= '0' when hor_cnt(5) = '0' and ver_cnt(5) = '0' and ( ver_cnt(4) = '0' or ver_cnt(3) = '0' ) else '1';      
+	paper <= '0' when h_cnt < paper_width and v_cnt < paper_height else '1';
 
-	hsync1 <= '0' when hor_cnt(5 downto 2) = "1010" else '1';
-	vsync1 <= '0' when hor_cnt(5 downto 1) = "00110" or hor_cnt(5 downto 1) = "10100" else '1';
-	vsync2 <= '1' when hor_cnt(5 downto 2) = "0010" or hor_cnt(5 downto 2) = "1001" else '0';
-
-	VIDEO_HSYNC <= hsync;
-	VIDEO_VSYNC <= vsync;
+	VIDEO_HSYNC <= hsync; 
+	VIDEO_VSYNC <= vsync; 
 	VIDEO_SYNC <= not (vsync xor hsync);
-	
+
 	SPEAKER <= sound_out;
 	TAPE_OUT <= mic;
 	ear <= TAPE_IN;
 
-	AY_CLK	<= chr_col_cnt(1);
+	AY_CLK	<= h_cnt(1);
 	ay_port <= '1' when A15='1' and A(1) = '0' and BUS_N_IORQGE = '0' and N_IORQ = '0' and N_M1 = '1' else '0';
 	AY_BC1 <= '1' when A14 = '1' and ay_port = '1' else '0';
 	AY_BDIR <= '1' when N_WR = '0' and ay_port = '1' else '0';
 
-	WR_BUF <= '1' when vbus_mode = '0' and chr_col_cnt(0) = '0' else '0';
+	WR_BUF <= '1' when vbus_mode = '0' and h_cnt(0) = '0' else '0';
 		
---	-- Z80 clock 3.5 MHz
---	process( CLK14 )
---	begin
---	-- rising edge of CLK14
---		if CLK14'event and CLK14 = '1' then
---			if tick = '1' then
---				if chr_col_cnt(0) = '0' then 
---					CLK_CPU <= '0';
---				else
---					CLK_CPU <= '1';
---				end if;
---			end if;
---		end if;     
---	end process;
-	
+	-- contended memory emulation
 	process( z80_clk )
 	begin
 		if z80_clk'event and z80_clk = '1' then
-			if n_mREQ='0' or (a(0)='0' and n_iORQ='0')then
+			if N_MREQ='0' or (A(0)='0' and N_IORQ='0')then
 				block_reg <='0';
 			else
 				block_reg <= '1';
@@ -208,100 +196,112 @@ begin
 		end if;
 	end process;
 
-	page_cont <= '1' when (a(0)='0' and n_iORQ='0') or ram_page="101" else '0';
-	count_block <= not (chr_col_cnt(2) and hor_cnt(0));
+	page_cont <= '1' when (A(0)='0' and N_IORQ='0') or ram_page="101" else '0';
+	count_block <= not (h_cnt(2) and h_cnt(3));
 
-	process( CLK14 )
+	-- z80 clk
+	process( CLK14, tick )
 	begin
-	-- rising edge of CLK14
-		if CLK14'event and CLK14 = '1' then
-			if tick = '1' then
-				z80_clk <= chr_col_cnt(0);
-				if page_cont='1' and paper='0' and block_reg='1' and count_block='1' and SYNC_MODE='0' then
-					z80_clk <= '0';
-				else
-					z80_clk <= chr_col_cnt(0);
-				end if;
-		   end if;
+		if CLK14'event and CLK14 = '1' and tick = '1' then
+			z80_clk <= h_cnt(0);
+			if page_cont='1' and paper='0' and block_reg='1' and count_block='1' and SYNC_MODE='0' then
+				z80_clk <= '0';
+			else
+				z80_clk <= h_cnt(0);
+			end if;
 		end if;
 	end process;
 
 	CLK_CPU <= z80_clk;
 	
-	-- sync, counters
-	process( CLK14 )
+	-- tick 7 mhz
+	process(CLK14)
 	begin
-		if CLK14'event and CLK14 = '1' then
-		
-			if tick = '1' then
-			
-				if chr_col_cnt = 7 then
-				
-					if hor_cnt = 55 then
-						hor_cnt <= (others => '0');
-					else
-						hor_cnt <= hor_cnt + 1;
-					end if;
-					
-					if hor_cnt = 39 then
-						if chr_row_cnt = 7 then
-							if (SYNC_MODE = '0' and ver_cnt = 38) or (SYNC_MODE = '1' and ver_cnt = 39) then
-								ver_cnt <= (others => '0');
-								invert <= invert + 1;
-							else
-								ver_cnt <= ver_cnt + 1;
-							end if;
-						end if;
-						chr_row_cnt <= chr_row_cnt + 1;
-					end if;
-				end if;
-
-				-- h/v sync
-
-				if chr_col_cnt = 7 then
-					hsync <= hsync1;
-					if ver_cnt /= 31 then
-						vsync <= '1';
-					elsif chr_row_cnt = 3 or chr_row_cnt = 4 or ( chr_row_cnt = 5 and ( hor_cnt >= 40 or hor_cnt < 12 ) ) then
-						vsync <= '0';
-					else 
-						vsync <= '1';
-					end if;
-					
-				end if;
-			
-				-- int
-				if (SYNC_MODE = '0') then
-					if chr_col_cnt = 0 then
-						if ver_cnt = 31 and chr_row_cnt = 0 and hor_cnt(5 downto 3) = "000" then
-							N_INT <= '0';
-						else
-							N_INT <= '1';
-						end if;
-					end if;
-				elsif (SYNC_MODE = '1') then
-					if chr_col_cnt = 6 and hor_cnt(2 downto 0) = "111" then
-						if ver_cnt = 29 and chr_row_cnt = 7 and hor_cnt(5 downto 3) = "100" then
-							N_INT <= '0';
-						else
-							N_INT <= '1';
-						end if;
-					end if;
-				end if;
-
-				chr_col_cnt <= chr_col_cnt + 1;
-			end if;
+		if CLK14'event and CLK14 = '1' then 
 			tick <= not tick;
 		end if;
 	end process;
 
+	-- h/v counters
+	process( CLK14, tick )
+	begin
+		if CLK14'event and CLK14 = '1' and tick = '1' then
+			if h_cnt = field_width-1 then
+				h_cnt <= (others => '0');
+				if SYNC_MODE = '0' and v_cnt = lines_classic-1 then 
+					v_cnt <= (others => '0');
+					invert <= invert + 1;
+				elsif SYNC_MODE = '1' and v_cnt = lines_pentagon-1 then
+					v_cnt <= (others => '0');
+					invert <= invert + 1;
+				else 
+					v_cnt <= v_cnt + 1;
+				end if;
+			else 
+				h_cnt <= h_cnt + 1;
+			end if; 
+		end if;
+	end process;
+
+	-- sync
+	process (CLK14, tick, h_cnt, v_cnt)
+	begin
+		if CLK14'event and CLK14 = '1' and tick = '1' then
+			if h_cnt(2 downto 0) = 7 then
+				if h_cnt >= paper_width + border_v and h_cnt < paper_width + border_v + hsync_pulse then
+					hsync <= '0';
+				else 
+					hsync <= '1';
+				end if;
+
+				if v_cnt >= paper_height + border_h and v_cnt < paper_height + border_h + vsync_pulse then 
+					vsync <= '0';
+				else 
+					vsync <= '1';
+				end if;			
+			end if;
+		end if;
+	end process;
+
+	-- int
+	process (CLK14, tick, N_RESET, z80_clk, h_cnt, v_cnt)
+	begin
+		if (N_RESET = '0') then
+			int_cnt <= (others => '1');
+			N_INT <= '1';
+		elsif CLK14'event and CLK14 = '1' and tick = '1' then
+			if (SYNC_MODE = '0') then
+				if v_cnt = 247 and h_cnt = paper_width + 12 then 
+					int_cnt <= (others => '0');
+					N_INT <= '0';
+				end if;
+			elsif (SYNC_MODE = '1') then
+				if v_cnt = 239 and h_cnt = paper_width + 62 then
+					int_cnt <= (others => '0');
+					N_INT <= '0';
+				end if;	
+			end if;
+
+			if (int_cnt = 32-1) then
+				N_INT <= '1';
+			end if;
+
+			if z80_clk = '1' then
+				if (int_cnt <= 32) then
+					int_cnt <= int_cnt + 1;
+				end if;
+			end if;
+
+		end if;
+	end process;
+
 	-- video mode selector
-	process( CLK14, KB )
+	process( CLK14, tick, booted, N_RESET, KB )
 	begin
 		if CLK14'event and CLK14 = '1' then
 			if tick = '1' then
 				if booted = '0' then
-					SYNC_MODE <= '1';
+					SYNC_MODE <= '0';
 					booted <= '1';
 				elsif N_RESET = '0' and booted = '1' then
 					if KB="11110" then -- "1" key pressed
@@ -315,129 +315,108 @@ begin
 	end process;
 	
 	-- video mem
-	process( CLK14 )
+	process( CLK14, tick, h_cnt )
 	begin
-		if CLK14'event and CLK14 = '1' then 
-			if chr_col_cnt(0) = '1' and tick = '0' then
-			
-				if vbus_mode = '1' then
-					if vid_rd = '0' then
-						shift <= MD;
-					else
-						attr  <= MD;
-					end if;
-				end if;
-				
-				if vbus_req = '0' and vbus_ack = '1' then
-					vbus_mode <= '0';
+		if CLK14'event and CLK14 = '1' and tick = '0' and h_cnt(0) = '1' then 
+			if vbus_mode = '1' then
+				if vid_rd = '0' then
+					shift <= MD;
 				else
-					vbus_mode <= '1';
-					vid_rd <= not vid_rd;
-				end if;	
-				vbus_ack <= vbus_req;
+					attr  <= MD;
+				end if;
 			end if;
+			
+			if vbus_req = '0' and vbus_ack = '1' then
+				vbus_mode <= '0';
+			else
+				vbus_mode <= '1';
+				vid_rd <= not vid_rd;
+			end if;	
+			vbus_ack <= vbus_req;
 		end if;
 	end process;
 	
 	MA <= ( others => 'Z' ) when vbus_mode = '0' else
-		std_logic_vector( "0" & ver_cnt(4 downto 3) & chr_row_cnt & ver_cnt(2 downto 0) & hor_cnt(4 downto 0) ) when vid_rd = '0' else
-		std_logic_vector( "0110" & ver_cnt(4 downto 0) & hor_cnt(4 downto 0) );
+		std_logic_vector( "0" & v_cnt(7 downto 6) & v_cnt(2 downto 0) & v_cnt(5 downto 3) & h_cnt(7 downto 3) ) when vid_rd = '0' else
+		std_logic_vector( "0110" & v_cnt(7 downto 3) & h_cnt(7 downto 3) );
 
-	-- r/g/b
+	-- r/g/b/i
 	process( CLK14 )
 	begin
-		if CLK14'event and CLK14 = '1' then
-			if tick = '1' then
-				if paper_r = '0' then           
-					if( shift_r(7) xor ( attr_r(7) and invert(4) ) ) = '1' then
-						VIDEO_B <= attr_r(0);
-						VIDEO_R <= attr_r(1);
-						VIDEO_G <= attr_r(2);
-					else
-						VIDEO_B <= attr_r(3);
-						VIDEO_R <= attr_r(4);
-						VIDEO_G <= attr_r(5);
-						end if;
+		if CLK14'event and CLK14 = '1' and tick = '1' then
+			if paper_r = '0' then           
+				if( shift_r(7) xor ( attr_r(7) and invert(4) ) ) = '1' then
+					VIDEO_B <= attr_r(0);
+					VIDEO_R <= attr_r(1);
+					VIDEO_G <= attr_r(2);
 				else
-					if blank_r = '0' then
-						VIDEO_B <= 'Z';
-						VIDEO_R <= 'Z';
-						VIDEO_G <= 'Z';
-						else
-						VIDEO_B <= border_attr(0);
-						VIDEO_R <= border_attr(1);
-						VIDEO_G <= border_attr(2);
-					end if;
+					VIDEO_B <= attr_r(3);
+					VIDEO_R <= attr_r(4);
+					VIDEO_G <= attr_r(5);
 				end if;
+			elsif blank_r = '0' then
+					VIDEO_B <= 'Z';
+					VIDEO_R <= 'Z';
+					VIDEO_G <= 'Z';
+			else
+					VIDEO_B <= border_attr(0);
+					VIDEO_R <= border_attr(1);
+					VIDEO_G <= border_attr(2);
 			end if;
 
-		end if;
-	end process;
-
-	-- brightness
-	process( CLK14 )
-	begin
-		if CLK14'event and CLK14 = '1' then
-			if tick = '1' then
-				if paper_r = '0' and attr_r(6) = '1' then
+			if paper_r = '0' and attr_r(6) = '1' then
 					VIDEO_I <= '1';
-				else
+			else
 					VIDEO_I <= '0';
-				end if;
 			end if;
 
 		end if;
 	end process;
 
 	-- paper, blank
-	process( CLK14 )
+	process( CLK14, tick, h_cnt )
 	begin
-		if CLK14'event and CLK14 = '1' then
-			if tick = '1' then
-				if chr_col_cnt = 7 then
-					attr_r <= attr;
-					shift_r <= shift;
+		if CLK14'event and CLK14 = '1' and tick = '1' then
 
-					if (SYNC_MODE = '0' and (hor_cnt(5 downto 2) = 10 or hor_cnt(5 downto 2) = 11 or ver_cnt = 31)) then
-						blank_r <= '0';
-					elsif (SYNC_MODE = '1' and ((hor_cnt(5 downto 0) > 38 and hor_cnt(5 downto 0) < 48) or ver_cnt(5 downto 1) = 15)) then
-					--elsif (SYNC_MODE = '1' and (hor_cnt(5 downto 3) = 5 or ver_cnt(5 downto 1) = 15)) then
-						blank_r <= '0';
-					else 
-						blank_r <= '1';
-					end if;
-					
-					paper_r <= paper;
-				else
-					shift_r(7 downto 1) <= shift_r(6 downto 0);
-					shift_r(0) <= '0';
-				end if;
-
+			if h_cnt(2 downto 0) = 7 then
+				attr_r <= attr;
+				shift_r <= shift;
+				paper_r <= paper;
+			else
+				shift_r <= shift_r(6 downto 0) & "0";
 			end if;
+
+			if h_cnt(2 downto 0) = 7 then
+				if ((h_cnt >= paper_width + border_v and h_cnt < paper_width + border_v + hsync_pulse*2 ) or 
+					(SYNC_MODE = '1' and v_cnt >= paper_height + border_h and v_cnt < lines_pentagon - border_h - vsync_pulse	) or 
+					(SYNC_MODE = '0' and v_cnt >= paper_height + border_h and v_cnt < lines_classic - border_h)) then
+					blank_r <= '0';
+				else 
+					blank_r <= '1';
+				end if;
+			end if;
+
 		end if;
 	end process;
 
 	-- ports, write by CPU
-	process( CLK14, N_RESET )
+	process( CLK14, tick, N_RESET )
 	begin
 		if N_RESET = '0' then
 			port_7ffd <= "000000";
 			sound_out <= '0';
 			mic <= '0';
-			--border_attr <= "000";
-		elsif CLK14'event and CLK14 = '1' then 
-			if tick = '1' then
-				-- port 7ffd, read				
-				if N_WR = '0' and A(1) = '0' and A15 = '0' and port_7ffd(5) = '0' and N_IORQ = '0' and N_M1 = '1' then
-					port_7ffd <= D(5 downto 0);
-				end if;
+		elsif CLK14'event and CLK14 = '1' and tick = '1' then 
+			-- port 7ffd, read				
+			if N_WR = '0' and A(1) = '0' and A15 = '0' and port_7ffd(5) = '0' and N_IORQ = '0' and N_M1 = '1' then
+				port_7ffd <= D(5 downto 0);
+			end if;
 
-				-- port #FE, write by CPU (read speaker, mic and border attr)
-				if N_WR = '0' and A(0) = '0' and N_IORQ = '0' and N_M1 = '1' then
-					border_attr <= D(2 downto 0); -- border attr
-					mic <= D(3); -- MIC
-					sound_out <= D(4); -- BEEPER
-				end if;
+			-- port #FE, write by CPU (read speaker, mic and border attr)
+			if N_WR = '0' and A(0) = '0' and N_IORQ = '0' and N_M1 = '1' then
+				border_attr <= D(2 downto 0); -- border attr
+				mic <= D(3); -- MIC
+				sound_out <= D(4); -- BEEPER
 			end if;
 		end if;
 	end process;
