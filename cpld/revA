@@ -3,14 +3,8 @@ set_global_assignment -name DEVICE_FILTER_PIN_COUNT 100
 set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR "-1"
 set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
 set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
-set_global_assignment -name EDA_SIMULATION_TOOL "ModelSim-Altera (VHDL)"
-set_global_assignment -name EDA_OUTPUT_DATA_FORMAT VHDL -section_id eda_simulation
 set_global_assignment -name MAX7000_DEVICE_IO_STANDARD TTL
 
-set_location_assignment PIN_62 -to TCK
-set_location_assignment PIN_4 -to TDI
-set_location_assignment PIN_73 -to TDO
-set_location_assignment PIN_15 -to TMS
 set_location_assignment PIN_87 -to CLK14
 set_location_assignment PIN_57 -to MD[0]
 set_location_assignment PIN_55 -to MD[1]
@@ -68,39 +62,6 @@ set_location_assignment PIN_8 -to TAPE_OUT
 set_location_assignment PIN_94 -to VIDEO_HSYNC
 set_location_assignment PIN_96 -to VIDEO_VSYNC
 set_location_assignment PIN_46 -to WR_BUF
-
-set_global_assignment -name FMAX_REQUIREMENT "14 MHz"
-set_global_assignment -name FMAX_REQUIREMENT "14 MHz" -section_id CLK14
-set_global_assignment -name MAX7000_OPTIMIZATION_TECHNIQUE BALANCED
-set_global_assignment -name AUTO_LCELL_INSERTION ON
-set_global_assignment -name OPTIMIZE_HOLD_TIMING OFF
-set_global_assignment -name AUTO_GLOBAL_CLOCK_MAX ON
-set_global_assignment -name AUTO_GLOBAL_OE_MAX ON
-set_global_assignment -name MAX_AUTO_GLOBAL_REGISTER_CONTROLS ON
-set_instance_assignment -name CLOCK_SETTINGS CLK14 -to CLK14
-set_global_assignment -name FIT_ONLY_ONE_ATTEMPT OFF
-set_global_assignment -name SIMULATION_MODE FUNCTIONAL
-set_global_assignment -name RESERVE_ALL_UNUSED_PINS_NO_OUTPUT_GND "AS INPUT TRI-STATED"
-set_global_assignment -name OPTIMIZE_IOC_REGISTER_PLACEMENT_FOR_TIMING NORMAL
-set_global_assignment -name AUTO_TURBO_BIT AUTO
-set_global_assignment -name REMOVE_DUPLICATE_REGISTERS ON
-set_global_assignment -name AUTO_RESOURCE_SHARING ON
-set_global_assignment -name STRATIXII_OPTIMIZATION_TECHNIQUE AREA
-set_global_assignment -name CYCLONE_OPTIMIZATION_TECHNIQUE AREA
-set_global_assignment -name STRATIX_OPTIMIZATION_TECHNIQUE AREA
-set_global_assignment -name MAXII_OPTIMIZATION_TECHNIQUE AREA
-set_global_assignment -name APEX20K_OPTIMIZATION_TECHNIQUE AREA
-set_global_assignment -name STATE_MACHINE_PROCESSING "MINIMAL BITS"
-set_global_assignment -name MAX7000_FANIN_PER_CELL 100
-set_global_assignment -name DO_MIN_ANALYSIS OFF
-set_global_assignment -name CUT_OFF_PATHS_BETWEEN_CLOCK_DOMAINS ON
-set_global_assignment -name CUT_OFF_READ_DURING_WRITE_PATHS ON
-set_global_assignment -name CUT_OFF_IO_PIN_FEEDBACK ON
-set_global_assignment -name BLOCK_DESIGN_NAMING MAXPLUSII
-set_global_assignment -name MAX7000_PARALLEL_EXPANDER_CHAIN_LENGTH 2
-set_global_assignment -name SUPPRESS_REG_MINIMIZATION_MSG ON
-set_global_assignment -name ENABLE_DRC_SETTINGS ON
-
 set_location_assignment PIN_31 -to BUS_N_IORQGE
 set_location_assignment PIN_24 -to BUS_N_ROMCS
 set_location_assignment PIN_1 -to D[7]
@@ -124,3 +85,14 @@ set_location_assignment PIN_92 -to VIDEO_I
 set_location_assignment PIN_98 -to VIDEO_SYNC
 set_location_assignment PIN_83 -to VIDEO_G
 set_location_assignment PIN_81 -to VIDEO_R
+
+set_global_assignment -name FMAX_REQUIREMENT "14 MHz" -section_id CLK14
+set_instance_assignment -name CLOCK_SETTINGS CLK14 -to CLK14
+
+set_global_assignment -name MAX7000_OPTIMIZATION_TECHNIQUE AREA
+set_global_assignment -name SYNTH_TIMING_DRIVEN_SYNTHESIS OFF
+set_global_assignment -name VHDL_SHOW_LMF_MAPPING_MESSAGES OFF
+set_global_assignment -name OPTIMIZE_HOLD_TIMING OFF
+set_global_assignment -name FITTER_EFFORT "STANDARD FIT"
+
+
