@@ -25,9 +25,9 @@ See ERRATA for bugs and issues )
 
 ## Revision B1
 
-- CLK_BUS signal on ZX BUS edge connector is routed via free IC4 inverter
+- CLK_BUS signal on ZX BUS edge connector is routed via free IC4 inverter (thanks to Ricardo Saraiva with testing and investigating the bug source)
 
 - Removed 3V3 regulator, because EPM3128 has less i/o lines than EPM7128, so - unsupported
 
-- Added diode for mode switch feature (RESET+1, RESET+2, etc)
+- Added diode for mode switch feature (RESET+1, RESET+2, etc - thanks goes to solegstar)
 
