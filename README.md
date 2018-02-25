@@ -16,7 +16,13 @@ This is the first fabricated prototype PCB, it just works, it's fully tested, ex
 
 For more information and assembly instructions please see **HOWTO**s in [English](https://github.com/andykarpov/karabas-128/blob/master/HOWTO-en.md) and [Russian](https://github.com/andykarpov/karabas-128/blob/master/HOWTO-ru.md).
 
+**REVISION HISTORY** [English](https://github.com/andykarpov/karabas-128/blob/master/REVISIONHISTORY-en.md) and [Russian](https://github.com/andykarpov/karabas-128/blob/master/REVISIONHISTORY-ru.md).
+
 **ERRATA for PCB rev.A:** [English](https://github.com/andykarpov/karabas-128/blob/master/ERRATA-revA-en.md) and [Russian](https://github.com/andykarpov/karabas-128/blob/master/ERRATA-revA-ru.md).
+
+**ERRATA for PCB rev.B:** [English](https://github.com/andykarpov/karabas-128/blob/master/ERRATA-revB-en.md) and [Russian](https://github.com/andykarpov/karabas-128/blob/master/ERRATA-revB-ru.md).
+
+**Latest revision:** rev.B1.
 
 Forum topic with discussion, new features and bugs is here: [zx-pk.ru](http://zx-pk.ru/threads/27724-karabas-128.html). (mostly russian-only, sorry about that).
 
