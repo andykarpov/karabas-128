@@ -50,10 +50,6 @@ set_global_assignment -name EDA_SIMULATION_TOOL "ModelSim-Altera (VHDL)"
 set_global_assignment -name EDA_OUTPUT_DATA_FORMAT VHDL -section_id eda_simulation
 set_global_assignment -name MAX7000_DEVICE_IO_STANDARD TTL
 
-set_location_assignment PIN_62 -to TCK
-set_location_assignment PIN_4 -to TDI
-set_location_assignment PIN_73 -to TDO
-set_location_assignment PIN_15 -to TMS
 set_location_assignment PIN_87 -to CLK14
 set_location_assignment PIN_57 -to MD[0]
 set_location_assignment PIN_55 -to MD[1]
