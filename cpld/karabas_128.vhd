@@ -106,8 +106,6 @@ architecture rtl of karabas_128 is
 	signal hsync     : std_logic := '1';
 	signal hsync1    : std_logic := '1';
 	signal vsync     : std_logic := '1';
-	signal vsync1    : std_logic := '1';
-	signal vsync2    : std_logic := '1';
 
 	signal rom_a	 : std_logic;
 	signal vram_acc		: std_logic;
@@ -170,11 +168,7 @@ begin
 	paper <= '0' when hor_cnt(5) = '0' and ver_cnt(5) = '0' and ( ver_cnt(4) = '0' or ver_cnt(3) = '0' ) else '1';      
 
 	hsync1 <= '0' when hor_cnt(5 downto 2) = "1010" else '1';
-	vsync1 <= '0' when hor_cnt(5 downto 1) = "00110" or hor_cnt(5 downto 1) = "10100" else '1';
-	vsync2 <= '1' when hor_cnt(5 downto 2) = "0010" or hor_cnt(5 downto 2) = "1001" else '0';
 
-	--VIDEO_HSYNC <= hsync;
-	--VIDEO_VSYNC <= vsync;
 	VIDEO_SYNC <= not (vsync xor hsync);
 	
 	SPEAKER <= sound_out;
@@ -188,21 +182,6 @@ begin
 
 	WR_BUF <= '1' when vbus_mode = '0' and chr_col_cnt(0) = '0' else '0';
 		
---	-- Z80 clock 3.5 MHz
---	process( CLK14 )
---	begin
---	-- rising edge of CLK14
---		if CLK14'event and CLK14 = '1' then
---			if tick = '1' then
---				if chr_col_cnt(0) = '0' then 
---					CLK_CPU <= '0';
---				else
---					CLK_CPU <= '1';
---				end if;
---			end if;
---		end if;     
---	end process;
-	
 	process( z80_clk )
 	begin
 		if z80_clk'event and z80_clk = '1' then
