@@ -23,7 +23,6 @@ entity karabas_128 is
 		
 		-- ZX BUS signals
 		BUS_N_IORQGE : in std_logic := '0';
-		BUS_N_ROMCS: in std_logic := '0';
 
 		-- Buffers
 		WR_BUF	: out std_logic := '0';
@@ -39,6 +38,9 @@ entity karabas_128 is
 		RAM_A14 : out std_logic := '0';
 		RAM_A15 : out std_logic := '0';
 		RAM_A16 : out std_logic := '0';
+		RAM_A17 : out std_logic := '1';
+		RAM_A18 : out std_logic := '1';
+		RAM_A19 : out std_logic := '1';
 
 		-- ROM
 		N_ROM_CS	: out std_logic := '1';
@@ -46,8 +48,6 @@ entity karabas_128 is
 		
 		-- Video
 		VIDEO_SYNC    : out std_logic := '1';
-		VIDEO_HSYNC    : out std_logic := '1';
-		VIDEO_VSYNC    : out std_logic := '1';
 		VIDEO_R       : out std_logic := '0';
 		VIDEO_G       : out std_logic := '0';
 		VIDEO_B       : out std_logic := '0';
@@ -89,6 +89,9 @@ architecture rtl of karabas_128 is
 
 	signal border_attr: std_logic_vector(2 downto 0) := "000";
 	signal port_7ffd	: std_logic_vector(5 downto 0);
+	signal port_ext : std_logic_vector(2 downto 0); -- RAM Extension port
+	signal fd_sel : std_logic;
+	signal fd_port : std_logic;
 	signal ay_port	: std_logic := '0';
 		
 	signal vbus_req		: std_logic := '1';
@@ -112,7 +115,7 @@ architecture rtl of karabas_128 is
 	signal rom_sel	 	: std_logic;
 	
 	signal n_is_ram     : std_logic := '1';
-	signal ram_page	: std_logic_vector(2 downto 0) := "000";
+	signal ram_page	: std_logic_vector(5 downto 0) := "000000";
 
 	signal n_is_rom     : std_logic := '1';
 	
@@ -138,18 +141,21 @@ begin
 
 	rom_sel <= port_7ffd(4);
 
-	ram_page <=	"000" when A15 = '0' and A14 = '0' else
-				"101" when A15 = '0' and A14 = '1' else
-				"010" when A15 = '1' and A14 = '0' else
-				port_7ffd(2 downto 0);
+	ram_page <=	"000000" when A15 = '0' and A14 = '0' else
+				"000101" when A15 = '0' and A14 = '1' else
+				"000010" when A15 = '1' and A14 = '0' else
+				port_ext(2) & port_ext(1) & port_ext(0) & port_7ffd(2 downto 0);
 
-	N_ROM_CS <= '0' when n_is_rom = '0' and BUS_N_ROMCS /= '1' else '1';
+	N_ROM_CS <= '0' when n_is_rom = '0' and N_RD = '0' else '1';
 
 	ROM_A14 <= '1' when rom_sel = '1' else '0';
 
 	RAM_A14 <= ram_page(0) when vbus_mode = '0' else '1';
 	RAM_A15 <= ram_page(1) when vbus_mode = '0' else port_7ffd(3);
 	RAM_A16 <= ram_page(2) when vbus_mode = '0' else '1';
+	RAM_A17 <= ram_page(3) when vbus_mode = '0' else '0';
+	RAM_A18 <= ram_page(4) when vbus_mode = '0' else '0';
+	RAM_A19 <= ram_page(5) when vbus_mode = '0' else '0';
 
 	vbus_req <= '0' when ( N_MREQ = '0' or N_IORQ = '0' ) and ( N_WR = '0' or N_RD = '0' ) else '1';
 	vbus_rdy <= '0' when tick = '0' or chr_col_cnt(0) = '0' else '1';
@@ -167,8 +173,8 @@ begin
 	vsync1 <= '0' when hor_cnt(5 downto 1) = "00110" or hor_cnt(5 downto 1) = "10100" else '1';
 	vsync2 <= '1' when hor_cnt(5 downto 2) = "0010" or hor_cnt(5 downto 2) = "1001" else '0';
 
-	VIDEO_HSYNC <= hsync;
-	VIDEO_VSYNC <= vsync;
+	--VIDEO_HSYNC <= hsync;
+	--VIDEO_VSYNC <= vsync;
 	VIDEO_SYNC <= not (vsync xor hsync);
 	
 	SPEAKER <= sound_out;
@@ -208,7 +214,7 @@ begin
 		end if;
 	end process;
 
-	page_cont <= '1' when (a(0)='0' and n_iORQ='0') or ram_page="101" else '0';
+	page_cont <= '1' when (a(0)='0' and n_iORQ='0') or ram_page="000101" else '0';
 	count_block <= not (chr_col_cnt(2) and hor_cnt(0));
 
 	process( CLK14 )
@@ -417,11 +423,24 @@ begin
 		end if;
 	end process;
 
+	-- #FD port correction
+	fd_sel <= '0' when D(7 downto 4) = "1101" and D(2 downto 0) = "011" else '1'; -- IN, OUT Z80 Command Latch
+
+	process(fd_sel, N_M1, N_RESET)
+	begin
+		if N_RESET='0' then
+			fd_port <= '1';
+		elsif rising_edge(N_M1) then 
+			fd_port <= fd_sel;
+		end if;
+	end process;
+
 	-- ports, write by CPU
 	process( CLK14, N_RESET )
 	begin
 		if N_RESET = '0' then
 			port_7ffd <= "000000";
+			port_ext <= "000";
 			sound_out <= '0';
 			mic <= '0';
 			--border_attr <= "000";
@@ -430,6 +449,11 @@ begin
 				-- port 7ffd, read				
 				if N_WR = '0' and A(1) = '0' and A15 = '0' and port_7ffd(5) = '0' and N_IORQ = '0' and N_M1 = '1' then
 					port_7ffd <= D(5 downto 0);
+				end if;
+
+				-- port 7ffd, memory extension
+				if N_WR = '0' and A(1) = '0' and A15 = '0' and fd_port='1' and N_IORQ='0' and N_M1='1' then
+					port_ext <= D(7 downto 5);
 				end if;
 
 				-- port #FE, write by CPU (read speaker, mic and border attr)

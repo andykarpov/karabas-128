@@ -108,8 +108,8 @@ set_location_assignment PIN_48 -to N_WR_BUF_EN
 set_location_assignment PIN_20 -to SPEAKER
 set_location_assignment PIN_6 -to TAPE_IN
 set_location_assignment PIN_8 -to TAPE_OUT
-set_location_assignment PIN_94 -to VIDEO_HSYNC
-set_location_assignment PIN_96 -to VIDEO_VSYNC
+set_location_assignment PIN_94 -to VIDEO_SYNC
+set_location_assignment PIN_96 -to RAM_A18
 set_location_assignment PIN_46 -to WR_BUF
 
 set_global_assignment -name FMAX_REQUIREMENT "14 MHz"
@@ -145,7 +145,7 @@ set_global_assignment -name SUPPRESS_REG_MINIMIZATION_MSG ON
 set_global_assignment -name ENABLE_DRC_SETTINGS ON
 
 set_location_assignment PIN_31 -to BUS_N_IORQGE
-set_location_assignment PIN_24 -to BUS_N_ROMCS
+set_location_assignment PIN_24 -to RAM_A19
 set_location_assignment PIN_1 -to D[7]
 set_location_assignment PIN_93 -to A[2]
 set_location_assignment PIN_2 -to A[1]
@@ -164,6 +164,6 @@ set_location_assignment PIN_89 -to A[6]
 set_location_assignment PIN_88 -to A[7]
 set_location_assignment PIN_85 -to VIDEO_B
 set_location_assignment PIN_92 -to VIDEO_I
-set_location_assignment PIN_98 -to VIDEO_SYNC
+set_location_assignment PIN_98 -to RAM_A17
 set_location_assignment PIN_83 -to VIDEO_G
 set_location_assignment PIN_81 -to VIDEO_R
