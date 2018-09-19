@@ -38,9 +38,9 @@ entity karabas_128 is
 		RAM_A14 : out std_logic := '0';
 		RAM_A15 : out std_logic := '0';
 		RAM_A16 : out std_logic := '0';
-		RAM_A17 : out std_logic := '1';
-		RAM_A18 : out std_logic := '1';
-		RAM_A19 : out std_logic := '1';
+		RAM_A17 : out std_logic := '0';
+		RAM_A18 : out std_logic := '0';
+		RAM_A19 : out std_logic := '0';
 
 		-- ROM
 		N_ROM_CS	: out std_logic := '1';
@@ -89,7 +89,9 @@ architecture rtl of karabas_128 is
 
 	signal border_attr: std_logic_vector(2 downto 0) := "000";
 	signal port_7ffd	: std_logic_vector(5 downto 0);
-	signal port_ext : std_logic_vector(2 downto 0); -- RAM Extension port
+	--signal port_dffd	: std_logic_vector(7 downto 0);
+	signal port_ext : std_logic_vector(2 downto 0);
+
 	signal fd_sel : std_logic;
 	signal fd_port : std_logic;
 	signal ay_port	: std_logic := '0';
@@ -142,7 +144,7 @@ begin
 	ram_page <=	"000000" when A15 = '0' and A14 = '0' else
 				"000101" when A15 = '0' and A14 = '1' else
 				"000010" when A15 = '1' and A14 = '0' else
-				port_ext(2) & port_ext(1) & port_ext(0) & port_7ffd(2 downto 0);
+				port_ext(2 downto 0) & port_7ffd(2 downto 0);
 
 	N_ROM_CS <= '0' when n_is_rom = '0' and N_RD = '0' else '1';
 
@@ -419,6 +421,7 @@ begin
 	begin
 		if N_RESET = '0' then
 			port_7ffd <= "000000";
+			--port_dffd <= "00000000";
 			port_ext <= "000";
 			sound_out <= '0';
 			mic <= '0';
@@ -426,15 +429,16 @@ begin
 		elsif CLK14'event and CLK14 = '1' then 
 			if tick = '1' then
 				-- port 7ffd, read				
-				if N_WR = '0' and A(1) = '0' and A15 = '0' and port_7ffd(5) = '0' and N_IORQ = '0' and N_M1 = '1' then
+				if N_WR = '0' and A15 & A14 & MA(13 downto 0) = X"7FFD" and port_7ffd(5) = '0' and N_IORQ = '0' and N_M1 = '1' and vbus_mode = '0' then
 					port_7ffd <= D(5 downto 0);
 				end if;
 
-				-- port 7ffd, memory extension
-				if N_WR = '0' and A(1) = '0' and A15 = '0' and fd_port='1' and N_IORQ='0' and N_M1='1' then
-					port_ext <= D(7 downto 5);
+				-- port dffd, read				
+				if N_WR = '0' and A15 & A14 & MA(13 downto 0) = X"DFFD" and N_IORQ = '0' and N_M1 = '1' and vbus_mode = '0' then
+					--port_dffd <= D(7 downto 0);
+					port_ext <= D(2 downto 0);
 				end if;
-
+				
 				-- port #FE, write by CPU (read speaker, mic and border attr)
 				if N_WR = '0' and A(0) = '0' and N_IORQ = '0' and N_M1 = '1' then
 					border_attr <= D(2 downto 0); -- border attr
@@ -447,8 +451,11 @@ begin
 	
 	-- ports, read by CPU
 	port_access <= '1' when N_IORQ = '0' and N_RD = '0' and N_M1 = '1' and BUS_N_IORQGE = '0' else '0';
-		D(7 downto 0) <= '1' & ear & '1' & KB(4 downto 0) when port_access = '1' and A(0) = '0' else -- #FE
-		attr_r when port_access = '1' and A(7 downto 0) = "11111111" else -- #FF
+		D(7 downto 0) <= 
+			--"00" & port_7ffd when port_access = '1' and (A15 & A14 & MA(13 downto 0) = X"7FFD") and vbus_mode = '0' else -- #7FFD 
+			--"00000" & port_ext when port_access = '1' and (A15 & A14 & MA(13 downto 0) = X"DFFD") and vbus_mode = '0' else -- #DFFD
+			'1' & ear & '1' & KB(4 downto 0) when port_access = '1' and A(0) = '0' else -- #FE
+			attr_r when port_access = '1' and A(7 downto 0) = "11111111" else -- #FF
 		"ZZZZZZZZ";
 
 end;
