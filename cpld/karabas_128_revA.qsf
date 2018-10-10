@@ -44,8 +44,6 @@ set_global_assignment -name PROJECT_CREATION_TIME_DATE "11:31:59  SEPTEMBER 25, 
 set_global_assignment -name LAST_QUARTUS_VERSION "13.0 SP1"
 set_global_assignment -name DEVICE_FILTER_PIN_COUNT 100
 set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR "-1"
-set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
-set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
 set_global_assignment -name EDA_SIMULATION_TOOL "ModelSim-Altera (VHDL)"
 set_global_assignment -name EDA_OUTPUT_DATA_FORMAT VHDL -section_id eda_simulation
 set_global_assignment -name MAX7000_DEVICE_IO_STANDARD TTL
@@ -163,3 +161,12 @@ set_location_assignment PIN_92 -to VIDEO_I
 set_location_assignment PIN_98 -to RAM_A17
 set_location_assignment PIN_83 -to VIDEO_G
 set_location_assignment PIN_81 -to VIDEO_R
+
+set_global_assignment -name SYNTH_TIMING_DRIVEN_SYNTHESIS OFF
+set_global_assignment -name OPTIMIZE_MULTI_CORNER_TIMING ON
+set_global_assignment -name FITTER_EFFORT "STANDARD FIT"
+set_global_assignment -name ALM_REGISTER_PACKING_EFFORT LOW
+set_global_assignment -name ECO_OPTIMIZE_TIMING ON
+set_global_assignment -name ECO_REGENERATE_REPORT ON
+set_global_assignment -name SLOW_SLEW_RATE ON
+set_global_assignment -name FORCE_FITTER_TO_AVOID_PERIPHERY_PLACEMENT_WARNINGS ON

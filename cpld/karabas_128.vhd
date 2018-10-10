@@ -89,11 +89,11 @@ architecture rtl of karabas_128 is
 
 	signal border_attr: std_logic_vector(2 downto 0) := "000";
 	signal port_7ffd	: std_logic_vector(5 downto 0);
-	--signal port_dffd	: std_logic_vector(7 downto 0);
-	signal port_ext : std_logic_vector(2 downto 0);
+	signal port_eff7_d2 : std_logic := '0';
+	signal port_7ffd_latched : std_logic := '0';
+	
+	signal ram_ext : std_logic_vector(2 downto 0) := "000";
 
-	signal fd_sel : std_logic;
-	signal fd_port : std_logic;
 	signal ay_port	: std_logic := '0';
 		
 	signal vbus_req		: std_logic := '1';
@@ -106,7 +106,6 @@ architecture rtl of karabas_128 is
 	signal paper     : std_logic;
 
 	signal hsync     : std_logic := '1';
-	signal hsync1    : std_logic := '1';
 	signal vsync     : std_logic := '1';
 
 	signal rom_a	 : std_logic;
@@ -122,16 +121,11 @@ architecture rtl of karabas_128 is
 	signal sound_out : std_logic := '0';
 	signal ear : std_logic := '1';
 	signal mic : std_logic := '0';
-	signal port_access: std_logic := '0';
-
-	signal z80_clk  : std_logic := '0';
-	signal page_cont  : std_logic;
-	signal block_reg  : std_logic;
-	signal count_block  : std_logic;
+	signal port_read: std_logic := '0';
+	signal port_write: std_logic := '0';
 	
-	signal reset_cnt : unsigned(2 downto 0) := "000";
-	signal SYNC_MODE  : std_logic; -- 0 for classic mode with contended memory, 1 for pentagon
-	signal booted : std_logic := '0';
+	signal fd_port : std_logic;
+	signal fd_sel : std_logic;
 
 begin
 	rom_a <= '0' when A15 = '0' and A14 = '0' else '1';
@@ -144,7 +138,7 @@ begin
 	ram_page <=	"000000" when A15 = '0' and A14 = '0' else
 				"000101" when A15 = '0' and A14 = '1' else
 				"000010" when A15 = '1' and A14 = '0' else
-				port_ext(2 downto 0) & port_7ffd(2 downto 0);
+				ram_ext(2 downto 0) & port_7ffd(2 downto 0);
 
 	N_ROM_CS <= '0' when n_is_rom = '0' and N_RD = '0' else '1';
 
@@ -169,8 +163,6 @@ begin
 
 	paper <= '0' when hor_cnt(5) = '0' and ver_cnt(5) = '0' and ( ver_cnt(4) = '0' or ver_cnt(3) = '0' ) else '1';      
 
-	hsync1 <= '0' when hor_cnt(5 downto 2) = "1010" else '1';
-
 	VIDEO_SYNC <= not (vsync xor hsync);
 	
 	SPEAKER <= sound_out;
@@ -183,37 +175,17 @@ begin
 	AY_BDIR <= '1' when N_WR = '0' and ay_port = '1' else '0';
 
 	WR_BUF <= '1' when vbus_mode = '0' and chr_col_cnt(0) = '0' else '0';
-		
-	process( z80_clk )
-	begin
-		if z80_clk'event and z80_clk = '1' then
-			if n_mREQ='0' or (a(0)='0' and n_iORQ='0')then
-				block_reg <='0';
-			else
-				block_reg <= '1';
-			end if;
-		end if;
-	end process;
 
-	page_cont <= '1' when (a(0)='0' and n_iORQ='0') or ram_page="000101" else '0';
-	count_block <= not (chr_col_cnt(2) and hor_cnt(0));
-
+	-- z80 cpu clk
 	process( CLK14 )
 	begin
 	-- rising edge of CLK14
 		if CLK14'event and CLK14 = '1' then
 			if tick = '1' then
-				z80_clk <= chr_col_cnt(0);
-				if page_cont='1' and paper='0' and block_reg='1' and count_block='1' and SYNC_MODE='0' then
-					z80_clk <= '0';
-				else
-					z80_clk <= chr_col_cnt(0);
-				end if;
-		   end if;
+				CLK_CPU <= chr_col_cnt(0);
+			end if;
 		end if;
 	end process;
-
-	CLK_CPU <= z80_clk;
 	
 	-- sync, counters
 	process( CLK14 )
@@ -232,7 +204,7 @@ begin
 					
 					if hor_cnt = 39 then
 						if chr_row_cnt = 7 then
-							if (SYNC_MODE = '0' and ver_cnt = 38) or (SYNC_MODE = '1' and ver_cnt = 39) then
+							if ver_cnt = 39 then
 								ver_cnt <= (others => '0');
 								invert <= invert + 1;
 							else
@@ -246,7 +218,13 @@ begin
 				-- h/v sync
 
 				if chr_col_cnt = 7 then
-					hsync <= hsync1;
+
+					if (hor_cnt(5 downto 2) = "1010") then 
+						hsync <= '0';
+					else 
+						hsync <= '1';
+					end if;
+					
 					if ver_cnt /= 31 then
 						vsync <= '1';
 					elsif chr_row_cnt = 3 or chr_row_cnt = 4 or ( chr_row_cnt = 5 and ( hor_cnt >= 40 or hor_cnt < 12 ) ) then
@@ -258,21 +236,11 @@ begin
 				end if;
 			
 				-- int
-				if (SYNC_MODE = '0') then
-					if chr_col_cnt = 0 then
-						if ver_cnt = 31 and chr_row_cnt = 0 and hor_cnt(5 downto 3) = "000" then
-							N_INT <= '0';
-						else
-							N_INT <= '1';
-						end if;
-					end if;
-				elsif (SYNC_MODE = '1') then
-					if chr_col_cnt = 6 and hor_cnt(2 downto 0) = "111" then
-						if ver_cnt = 29 and chr_row_cnt = 7 and hor_cnt(5 downto 3) = "100" then
-							N_INT <= '0';
-						else
-							N_INT <= '1';
-						end if;
+				if chr_col_cnt = 6 and hor_cnt(2 downto 0) = "111" then
+					if ver_cnt = 29 and chr_row_cnt = 7 and hor_cnt(5 downto 3) = "100" then
+						N_INT <= '0';
+					else
+						N_INT <= '1';
 					end if;
 				end if;
 
@@ -282,25 +250,6 @@ begin
 		end if;
 	end process;
 
-	-- video mode selector
-	process( CLK14, KB )
-	begin
-		if CLK14'event and CLK14 = '1' then
-			if tick = '1' then
-				if booted = '0' then
-					SYNC_MODE <= '1';
-					booted <= '1';
-				elsif N_RESET = '0' and booted = '1' then
-					if KB="11110" then -- "1" key pressed
-						SYNC_MODE <= '1'; -- pentagon
-					elsif KB="11101" then -- "2" key pressed
-						SYNC_MODE <= '0'; -- classic
-					end if;
-				end if;
-			end if;
-		end if;
-	end process;
-	
 	-- video mem
 	process( CLK14 )
 	begin
@@ -385,10 +334,7 @@ begin
 					attr_r <= attr;
 					shift_r <= shift;
 
-					if (SYNC_MODE = '0' and (hor_cnt(5 downto 2) = 10 or hor_cnt(5 downto 2) = 11 or ver_cnt = 31)) then
-						blank_r <= '0';
-					elsif (SYNC_MODE = '1' and ((hor_cnt(5 downto 0) > 38 and hor_cnt(5 downto 0) < 48) or ver_cnt(5 downto 1) = 15)) then
-					--elsif (SYNC_MODE = '1' and (hor_cnt(5 downto 3) = 5 or ver_cnt(5 downto 1) = 15)) then
+					if ((hor_cnt(5 downto 0) > 38 and hor_cnt(5 downto 0) < 48) or ver_cnt(5 downto 1) = 15) then
 						blank_r <= '0';
 					else 
 						blank_r <= '1';
@@ -404,58 +350,72 @@ begin
 		end if;
 	end process;
 
-	-- #FD port correction
-	fd_sel <= '0' when D(7 downto 4) = "1101" and D(2 downto 0) = "011" else '1'; -- IN, OUT Z80 Command Latch
+	 -- #FD port correction
+	 fd_sel <= '0' when D(7 downto 4) = "1101" and D(2 downto 0) = "011" else '1'; -- IN, OUT Z80 Command Latch
 
-	process(fd_sel, N_M1, N_RESET)
-	begin
-		if N_RESET='0' then
-			fd_port <= '1';
-		elsif rising_edge(N_M1) then 
-			fd_port <= fd_sel;
-		end if;
-	end process;
-
+	 process(fd_sel, N_M1, N_RESET)
+	 begin
+			if N_RESET='0' then
+				  fd_port <= '1';
+			elsif rising_edge(N_M1) then 
+				  fd_port <= fd_sel;
+			end if;
+	 end process;
+	
+	port_7ffd_latched <= '1' when port_7ffd(5) = '1' and port_eff7_d2 = '1' else '0';
+	
 	-- ports, write by CPU
 	process( CLK14, N_RESET )
 	begin
 		if N_RESET = '0' then
 			port_7ffd <= "000000";
-			--port_dffd <= "00000000";
-			port_ext <= "000";
+			ram_ext <= "000";
+			port_eff7_d2 <= '0';
 			sound_out <= '0';
 			mic <= '0';
 			--border_attr <= "000";
 		elsif CLK14'event and CLK14 = '1' then 
 			if tick = '1' then
-				-- port 7ffd, read				
-				if N_WR = '0' and A15 & A14 & MA(13 downto 0) = X"7FFD" and port_7ffd(5) = '0' and N_IORQ = '0' and N_M1 = '1' and vbus_mode = '0' then
-					port_7ffd <= D(5 downto 0);
-				end if;
 
-				-- port dffd, read				
-				if N_WR = '0' and A15 & A14 & MA(13 downto 0) = X"DFFD" and N_IORQ = '0' and N_M1 = '1' and vbus_mode = '0' then
-					--port_dffd <= D(7 downto 0);
-					port_ext <= D(2 downto 0);
-				end if;
-				
-				-- port #FE, write by CPU (read speaker, mic and border attr)
-				if N_WR = '0' and A(0) = '0' and N_IORQ = '0' and N_M1 = '1' then
-					border_attr <= D(2 downto 0); -- border attr
-					mic <= D(3); -- MIC
-					sound_out <= D(4); -- BEEPER
-				end if;
+				if port_write = '1' then
+
+					-- port #7FFD			
+					if A15 & A14 & MA(13 downto 0) = X"7FFD" and port_7ffd_latched = '0' then
+						port_7ffd <= D(5 downto 0);
+					end if;
+					
+					-- port #7FFD (ram ext)
+					if A15 & A14 & MA(13 downto 0) = X"7FFD" then
+						if port_eff7_d2 = '0' then
+							ram_ext <= D(5) & D(7 downto 6);
+						else 
+							ram_ext <= "000";
+						end if;
+					end if;
+					
+					-- port #EFF7
+					if A15 & A14 & MA(13 downto 0) = X"EFF7" then
+						port_eff7_d2 <= D(2);
+					end if;
+					
+					-- port #FE
+					if A(0) = '0' then
+						border_attr <= D(2 downto 0); -- border attr
+						mic <= D(3); -- MIC
+						sound_out <= D(4); -- BEEPER
+					end if;
+				end if;					
 			end if;
 		end if;
 	end process;
 	
-	-- ports, read by CPU
-	port_access <= '1' when N_IORQ = '0' and N_RD = '0' and N_M1 = '1' and BUS_N_IORQGE = '0' else '0';
-		D(7 downto 0) <= 
-			--"00" & port_7ffd when port_access = '1' and (A15 & A14 & MA(13 downto 0) = X"7FFD") and vbus_mode = '0' else -- #7FFD 
-			--"00000" & port_ext when port_access = '1' and (A15 & A14 & MA(13 downto 0) = X"DFFD") and vbus_mode = '0' else -- #DFFD
-			'1' & ear & '1' & KB(4 downto 0) when port_access = '1' and A(0) = '0' else -- #FE
-			attr_r when port_access = '1' and A(7 downto 0) = "11111111" else -- #FF
+	port_write <= '1' when N_IORQ = '0' and N_WR = '0' and N_M1 = '1' and vbus_mode = '0' else '0';
+	port_read <= '1' when N_IORQ = '0' and N_RD = '0' and N_M1 = '1' and BUS_N_IORQGE = '0' else '0';
+
+	-- read ports by CPU
+	D(7 downto 0) <= 
+		'1' & ear & '1' & KB(4 downto 0) when port_read = '1' and A(0) = '0' else -- #FE
+		attr_r when port_read = '1' and A(7 downto 0) = "11111111" else -- #FF
 		"ZZZZZZZZ";
 
 end;
