@@ -47,11 +47,11 @@ entity karabas_128 is
 		ROM_A14 : out std_logic := '0';
 		
 		-- Video
-		VIDEO_SYNC    : out std_logic := '1';
-		VIDEO_R       : out std_logic := '0';
-		VIDEO_G       : out std_logic := '0';
-		VIDEO_B       : out std_logic := '0';
-		VIDEO_I       : out std_logic := '0';
+		VIDEO_SYNC    : out std_logic;
+		VIDEO_R       : out std_logic;
+		VIDEO_G       : out std_logic;
+		VIDEO_B       : out std_logic;
+		VIDEO_I       : out std_logic;
 
 		-- Interfaces 
 		TAPE_IN 		: in std_logic;
@@ -111,8 +111,6 @@ architecture rtl of karabas_128 is
 	signal rom_a	 : std_logic;
 	signal vram_acc		: std_logic;
 	
-	signal rom_sel	 	: std_logic;
-	
 	signal n_is_ram     : std_logic := '1';
 	signal ram_page	: std_logic_vector(5 downto 0) := "000000";
 
@@ -133,7 +131,7 @@ begin
 	n_is_rom <= '0' when N_MREQ = '0' and rom_a = '0' else '1';
 	n_is_ram <= '0' when N_MREQ = '0' and rom_a = '1' else '1';
 
-	rom_sel <= port_7ffd(4);
+	ROM_A14 <= port_7ffd(4);
 
 	ram_page <=	"000000" when A15 = '0' and A14 = '0' else
 				"000101" when A15 = '0' and A14 = '1' else
@@ -141,8 +139,6 @@ begin
 				ram_ext(2 downto 0) & port_7ffd(2 downto 0);
 
 	N_ROM_CS <= '0' when n_is_rom = '0' and N_RD = '0' else '1';
-
-	ROM_A14 <= '1' when rom_sel = '1' else '0';
 
 	RAM_A14 <= ram_page(0) when vbus_mode = '0' else '1';
 	RAM_A15 <= ram_page(1) when vbus_mode = '0' else port_7ffd(3);
@@ -176,8 +172,10 @@ begin
 
 	WR_BUF <= '1' when vbus_mode = '0' and chr_col_cnt(0) = '0' else '0';
 
+--	CLK_CPU <= chr_col_cnt(0);
+	
 	-- z80 cpu clk
-	process( CLK14 )
+	process( CLK14, tick )
 	begin
 	-- rising edge of CLK14
 		if CLK14'event and CLK14 = '1' then
@@ -188,7 +186,7 @@ begin
 	end process;
 	
 	-- sync, counters
-	process( CLK14 )
+	process( CLK14, tick, chr_col_cnt, hor_cnt, chr_row_cnt, ver_cnt)
 	begin
 		if CLK14'event and CLK14 = '1' then
 		
@@ -251,7 +249,7 @@ begin
 	end process;
 
 	-- video mem
-	process( CLK14 )
+	process( CLK14, chr_col_cnt, vbus_mode, vid_rd, vbus_req, vbus_ack )
 	begin
 		if CLK14'event and CLK14 = '1' then 
 			if chr_col_cnt(0) = '1' and tick = '0' then
@@ -280,7 +278,7 @@ begin
 		std_logic_vector( "0110" & ver_cnt(4 downto 0) & hor_cnt(4 downto 0) );
 
 	-- r/g/b
-	process( CLK14 )
+	process( CLK14, tick, paper_r, shift_r, attr_r, invert, blank_r )
 	begin
 		if CLK14'event and CLK14 = '1' then
 			if tick = '1' then
@@ -311,7 +309,7 @@ begin
 	end process;
 
 	-- brightness
-	process( CLK14 )
+	process( CLK14, tick, paper_r, attr_r )
 	begin
 		if CLK14'event and CLK14 = '1' then
 			if tick = '1' then
@@ -326,7 +324,7 @@ begin
 	end process;
 
 	-- paper, blank
-	process( CLK14 )
+	process( CLK14, tick, chr_col_cnt, hor_cnt, ver_cnt )
 	begin
 		if CLK14'event and CLK14 = '1' then
 			if tick = '1' then
@@ -351,7 +349,7 @@ begin
 	end process;
 
 	 -- #FD port correction
-	 fd_sel <= '0' when D(7 downto 4) = "1101" and D(2 downto 0) = "011" else '1'; -- IN, OUT Z80 Command Latch
+	 fd_sel <= '0' when vbus_mode='0' and MD(7 downto 4) = "1101" and MD(2 downto 0) = "011" else '1'; -- IN, OUT Z80 Command Latch
 
 	 process(fd_sel, N_M1, N_RESET)
 	 begin
@@ -362,10 +360,8 @@ begin
 			end if;
 	 end process;
 	
-	port_7ffd_latched <= '1' when port_7ffd(5) = '1' and port_eff7_d2 = '1' else '0';
-	
 	-- ports, write by CPU
-	process( CLK14, N_RESET )
+	process( CLK14, N_RESET, tick, A15, A14, MA, D, port_7ffd_latched, A(0), port_write )
 	begin
 		if N_RESET = '0' then
 			port_7ffd <= "000000";
@@ -375,19 +371,19 @@ begin
 			mic <= '0';
 			--border_attr <= "000";
 		elsif CLK14'event and CLK14 = '1' then 
-			if tick = '1' then
+			--if tick = '1' then
 
 				if port_write = '1' then
 
 					-- port #7FFD			
-					if A15 & A14 & MA(13 downto 0) = X"7FFD" and port_7ffd_latched = '0' then
-						port_7ffd <= D(5 downto 0);
+					if A15 & A14 & MA(13 downto 0) = X"7FFD" and port_7ffd_latched = '0' and fd_port='1' then
+						port_7ffd <= MD(5 downto 0);
 					end if;
 					
 					-- port #7FFD (ram ext)
-					if A15 & A14 & MA(13 downto 0) = X"7FFD" then
+					if A15 & A14 & MA(13 downto 0) = X"7FFD" and fd_port='1' then
 						if port_eff7_d2 = '0' then
-							ram_ext <= D(5) & D(7 downto 6);
+							ram_ext <= MD(5) & MD(7 downto 6);
 						else 
 							ram_ext <= "000";
 						end if;
@@ -395,25 +391,27 @@ begin
 					
 					-- port #EFF7
 					if A15 & A14 & MA(13 downto 0) = X"EFF7" then
-						port_eff7_d2 <= D(2);
+						port_eff7_d2 <= MD(2);
 					end if;
 					
 					-- port #FE
 					if A(0) = '0' then
-						border_attr <= D(2 downto 0); -- border attr
-						mic <= D(3); -- MIC
-						sound_out <= D(4); -- BEEPER
+						border_attr <= MD(2 downto 0); -- border attr
+						mic <= MD(3); -- MIC
+						sound_out <= MD(4); -- BEEPER
 					end if;
 				end if;					
-			end if;
+			-- end if;
 		end if;
 	end process;
 	
 	port_write <= '1' when N_IORQ = '0' and N_WR = '0' and N_M1 = '1' and vbus_mode = '0' else '0';
 	port_read <= '1' when N_IORQ = '0' and N_RD = '0' and N_M1 = '1' and BUS_N_IORQGE = '0' else '0';
+	port_7ffd_latched <= '1' when port_7ffd(5) = '1' and port_eff7_d2 = '1' else '0';
 
 	-- read ports by CPU
 	D(7 downto 0) <= 
+		--ram_ext(1 downto 0) & port_7ffd(5 downto 0) when port_read = '1' and A15 & A14 & MA(13 downto 0) = X"7FFD" and vbus_mode='0' else -- #7FFD
 		'1' & ear & '1' & KB(4 downto 0) when port_read = '1' and A(0) = '0' else -- #FE
 		attr_r when port_read = '1' and A(7 downto 0) = "11111111" else -- #FF
 		"ZZZZZZZZ";
