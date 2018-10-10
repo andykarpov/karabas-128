@@ -143,7 +143,7 @@ begin
 				"010" when A15 = '1' and A14 = '0' else
 				port_7ffd(2 downto 0);
 
-	N_ROM_CS <= '0' when n_is_rom = '0' and BUS_N_ROMCS /= '1' else '1';
+	N_ROM_CS <= n_is_rom or N_RD or BUS_N_ROMCS;
 
 	ROM_A14 <= '1' when rom_sel = '1' else '0';
 
