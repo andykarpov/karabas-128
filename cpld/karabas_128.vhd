@@ -86,13 +86,9 @@ architecture rtl of karabas_128 is
 	signal blank_r  : std_logic;
 	signal attr_r   : std_logic_vector(7 downto 0);
 	signal shift_r  : std_logic_vector(7 downto 0);
-
 	signal border_attr: std_logic_vector(2 downto 0) := "000";
-	signal port_7ffd	: std_logic_vector(5 downto 0);
-	signal port_eff7_d2 : std_logic := '0';
-	signal port_eff7_d3 : std_logic := '0';
-	signal port_7ffd_latched : std_logic := '0';
-	
+
+	signal port_7ffd	: std_logic_vector(7 downto 0);	
 	signal ram_ext : std_logic_vector(2 downto 0) := "000";
 
 	signal ay_port	: std_logic := '0';
@@ -127,7 +123,7 @@ architecture rtl of karabas_128 is
 	signal fd_sel : std_logic;
 
 begin
-	rom_a <= '0' when A15 = '0' and A14 = '0' and port_eff7_d3 = '0' else '1';
+	rom_a <= '0' when A15 = '0' and A14 = '0' else '1';
 	
 	n_is_rom <= '0' when N_MREQ = '0' and rom_a = '0' else '1';
 	n_is_ram <= '0' when N_MREQ = '0' and rom_a = '1' else '1';
@@ -173,8 +169,6 @@ begin
 
 	WR_BUF <= '1' when vbus_mode = '0' and chr_col_cnt(0) = '0' else '0';
 
---	CLK_CPU <= chr_col_cnt(0);
-	
 	-- z80 cpu clk
 	process( CLK14, tick )
 	begin
@@ -362,13 +356,11 @@ begin
 	 end process;
 	
 	-- ports, write by CPU
-	process( CLK14, N_RESET, tick, A15, A14, MA, D, port_7ffd_latched, A(0), port_write )
+	process( CLK14, N_RESET, tick, A15, A14, MA, D, A(0), port_write )
 	begin
 		if N_RESET = '0' then
-			port_7ffd <= "000000";
+			port_7ffd <= "00000000";
 			ram_ext <= "000";
-			port_eff7_d2 <= '0';
-			port_eff7_d3 <= '0';
 			sound_out <= '0';
 			mic <= '0';
 			--border_attr <= "000";
@@ -378,23 +370,13 @@ begin
 				if port_write = '1' then
 
 					-- port #7FFD			
-					if A15 & A14 & MA(13 downto 0) = X"7FFD" and port_7ffd_latched = '0' and fd_port='1' then
-						port_7ffd <= MD(5 downto 0);
+					if A15 & A14 & MA(13 downto 0) = X"7FFD" and port_7ffd(5) = '0' and fd_port='1' then
+						port_7ffd <= MD(7 downto 0);
 					end if;
 					
-					-- port #7FFD (ram ext)
-					if A15 & A14 & MA(13 downto 0) = X"7FFD" and fd_port='1' then
-						if port_eff7_d2 = '0' then
-							ram_ext <= MD(5) & MD(7 downto 6);
-						else 
-							ram_ext <= "000";
-						end if;
-					end if;
-					
-					-- port #EFF7
-					if A15 & A14 & MA(13 downto 0) = X"EFF7" then
-						port_eff7_d2 <= MD(2);
-						port_eff7_d3 <= MD(3);
+					-- port #DFFD (ram ext)
+					if A15 & A14 & MA(13 downto 0) = X"DFFD" and fd_port='1' then
+							ram_ext <= MD(2 downto 0);
 					end if;
 					
 					-- port #FE
@@ -410,11 +392,10 @@ begin
 	
 	port_write <= '1' when N_IORQ = '0' and N_WR = '0' and N_M1 = '1' and vbus_mode = '0' else '0';
 	port_read <= '1' when N_IORQ = '0' and N_RD = '0' and N_M1 = '1' and BUS_N_IORQGE = '0' else '0';
-	port_7ffd_latched <= '1' when port_7ffd(5) = '1' and port_eff7_d2 = '1' else '0';
 
 	-- read ports by CPU
 	D(7 downto 0) <= 
-		--ram_ext(1 downto 0) & port_7ffd(5 downto 0) when port_read = '1' and A15 & A14 & MA(13 downto 0) = X"7FFD" and vbus_mode='0' else -- #7FFD
+		--port_7ffd(7 downto 0) when port_read = '1' and A15 & A14 & MA(13 downto 0) = X"7FFD" and vbus_mode='0' else -- #7FFD
 		'1' & ear & '1' & KB(4 downto 0) when port_read = '1' and A(0) = '0' else -- #FE
 		attr_r when port_read = '1' and A(7 downto 0) = "11111111" else -- #FF
 		"ZZZZZZZZ";
