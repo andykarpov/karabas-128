@@ -90,6 +90,7 @@ architecture rtl of karabas_128 is
 	signal border_attr: std_logic_vector(2 downto 0) := "000";
 	signal port_7ffd	: std_logic_vector(5 downto 0);
 	signal port_eff7_d2 : std_logic := '0';
+	signal port_eff7_d3 : std_logic := '0';
 	signal port_7ffd_latched : std_logic := '0';
 	
 	signal ram_ext : std_logic_vector(2 downto 0) := "000";
@@ -126,7 +127,7 @@ architecture rtl of karabas_128 is
 	signal fd_sel : std_logic;
 
 begin
-	rom_a <= '0' when A15 = '0' and A14 = '0' else '1';
+	rom_a <= '0' when A15 = '0' and A14 = '0' and port_eff7_d3 = '0' else '1';
 	
 	n_is_rom <= '0' when N_MREQ = '0' and rom_a = '0' else '1';
 	n_is_ram <= '0' when N_MREQ = '0' and rom_a = '1' else '1';
@@ -367,6 +368,7 @@ begin
 			port_7ffd <= "000000";
 			ram_ext <= "000";
 			port_eff7_d2 <= '0';
+			port_eff7_d3 <= '0';
 			sound_out <= '0';
 			mic <= '0';
 			--border_attr <= "000";
@@ -392,6 +394,7 @@ begin
 					-- port #EFF7
 					if A15 & A14 & MA(13 downto 0) = X"EFF7" then
 						port_eff7_d2 <= MD(2);
+						port_eff7_d3 <= MD(3);
 					end if;
 					
 					-- port #FE
