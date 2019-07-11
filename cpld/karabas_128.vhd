@@ -163,7 +163,7 @@ begin
 	ear <= TAPE_IN;
 
 	AY_CLK	<= chr_col_cnt(1);
-	ay_port <= '1' when A15='1' and A(1) = '0' and BUS_N_IORQGE = '0' and N_IORQ = '0' and N_M1 = '1' else '0';
+	ay_port <= '1' when A15='1' and A(1) = '0' and fd_port='1' and BUS_N_IORQGE = '0' and N_IORQ = '0' and N_M1 = '1' else '0'; -- #BFFD
 	AY_BC1 <= '1' when A14 = '1' and ay_port = '1' else '0';
 	AY_BDIR <= '1' when N_WR = '0' and ay_port = '1' else '0';
 
@@ -365,17 +365,29 @@ begin
 			mic <= '0';
 			--border_attr <= "000";
 		elsif CLK14'event and CLK14 = '1' then 
-			--if tick = '1' then
+			if tick = '1' then
 
 				if port_write = '1' then
 
-					-- port #7FFD			
-					if A15 & A14 & MA(13 downto 0) = X"7FFD" and port_7ffd(5) = '0' and fd_port='1' then
-						port_7ffd <= MD(7 downto 0);
-					end if;
+					-- комменты от solegstar:
 					
-					-- port #DFFD (ram ext)
-					if A15 & A14 & MA(13 downto 0) = X"DFFD" and fd_port='1' then
+					-- Из того, что явно бросается в глаза - порт 7ffd сделан с жёсткой дешифрацией 
+					-- тут это не нужно и даже вредно. Не все демы будут правильно работать. 
+					-- Во вторых защелка заведена в порт, что тоже не правильно в корне. 
+					-- Защелка ставится только в порт расширения, он в прошивке dffd.
+					
+					-- Нужно из дешифратора 7ffd убрать сигнал fd_port.
+					-- И сделать дешифратор для 7ffd только по адресам A15 = 0 и А1 = 0
+					-- Никакой жесткой дешифрации для 7ffd
+		 
+					 -- port #7FFD                   
+					 --if A15 & A14 & MA(13 downto 0) = X"7FFD" and port_7ffd(5) = '0' then
+					 if A15='0' and A(1) = '0' then
+							port_7ffd <= MD(7 downto 0);
+					 end if;
+					 
+					 -- port #DFFD (ram ext)
+					if A15 & A14 & MA(13 downto 0) = X"DFFD" and port_7ffd(5) = '0' and fd_port='1' then
 							ram_ext <= MD(2 downto 0);
 					end if;
 					
@@ -386,7 +398,7 @@ begin
 						sound_out <= MD(4); -- BEEPER
 					end if;
 				end if;					
-			-- end if;
+			end if;
 		end if;
 	end process;
 	
@@ -395,7 +407,7 @@ begin
 
 	-- read ports by CPU
 	D(7 downto 0) <= 
-		--port_7ffd(7 downto 0) when port_read = '1' and A15 & A14 & MA(13 downto 0) = X"7FFD" and vbus_mode='0' else -- #7FFD
+		port_7ffd(7 downto 0) when port_read = '1' and A15='0' and A(1)='0' else -- #7FFD
 		'1' & ear & '1' & KB(4 downto 0) when port_read = '1' and A(0) = '0' else -- #FE
 		attr_r when port_read = '1' and A(7 downto 0) = "11111111" else -- #FF
 		"ZZZZZZZZ";
