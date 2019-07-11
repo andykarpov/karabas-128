@@ -45,6 +45,7 @@ entity karabas_128 is
 		-- ROM
 		N_ROM_CS	: out std_logic := '1';
 		ROM_A14 : out std_logic := '0';
+		ROM_A15 : out std_logic := '0';
 		
 		-- Video
 		VIDEO_SYNC    : out std_logic;
@@ -55,7 +56,7 @@ entity karabas_128 is
 
 		-- Interfaces 
 		TAPE_IN 		: in std_logic;
-		TAPE_OUT		: out std_logic := '1';
+		--TAPE_OUT		: out std_logic := '1';
 		SPEAKER	: out std_logic := '1';
 
 		-- AY
@@ -115,21 +116,42 @@ architecture rtl of karabas_128 is
 	
 	signal sound_out : std_logic := '0';
 	signal ear : std_logic := '1';
-	signal mic : std_logic := '0';
+	--signal mic : std_logic := '0';
 	signal port_read: std_logic := '0';
 	signal port_write: std_logic := '0';
 	
 	signal fd_port : std_logic;
 	signal fd_sel : std_logic;
+	
+	signal trdos_tgl : std_logic := '0';
+	signal trdos_flg : std_logic := '0';
+	
+	signal rom_page : std_logic_vector(1 downto 0) := "00";
 
 begin
 	rom_a <= '0' when A15 = '0' and A14 = '0' else '1';
 	
-	n_is_rom <= '0' when N_MREQ = '0' and rom_a = '0' else '1';
+	n_is_rom <= '0' when N_MREQ = '0' and rom_a = '0' and trdos_tgl = '0' else '1';
 	n_is_ram <= '0' when N_MREQ = '0' and rom_a = '1' else '1';
 
-	ROM_A14 <= port_7ffd(4);
+	-- pentagon ROM banks map (A14, A15):
+	-- 00 - bank 0, empty 
+	-- 01 - bank 1, TR-DOS
+	-- 10 - bank 2, basic-128
+	-- 11 - bank 3, basic-48
+	
+	rom_page <= "01" when trdos_flg = '1' else
+					'1' & port_7ffd(4);
+	
+	ROM_A14 <= rom_page(0);
+	ROM_A15 <= rom_page(1);
 
+	trdos_tgl <= '1' when vbus_mode = '0' and N_M1 = '0' and N_RD = '0' and N_MREQ = '0' and (
+		   (trdos_flg = '0' and port_7ffd(4) = '1' and A15 = '0' and A14 = '0' and MA(13 downto 8) = "111101") -- enter trdos 
+		--or (trdos_flg = '0' and port_7ffd(4) = '1' and A15 = '0' and A14 = '0' and MA(13 downto 0) = "00000001100110")
+		or (trdos_flg = '1' and (A15 = '1' or A14 = '1')) --leave trdos
+		) else '0';
+	
 	ram_page <=	"000000" when A15 = '0' and A14 = '0' else
 				"000101" when A15 = '0' and A14 = '1' else
 				"000010" when A15 = '1' and A14 = '0' else
@@ -159,7 +181,7 @@ begin
 	VIDEO_SYNC <= not (vsync xor hsync);
 	
 	SPEAKER <= sound_out;
-	TAPE_OUT <= mic;
+	--TAPE_OUT <= mic;
 	ear <= TAPE_IN;
 
 	AY_CLK	<= chr_col_cnt(1);
@@ -356,14 +378,14 @@ begin
 	 end process;
 	
 	-- ports, write by CPU
-	process( CLK14, N_RESET, tick, A15, A14, MA, D, A(0), port_write )
+	process( CLK14, N_RESET, tick, A15, A14, MA, D, A(0), port_write, trdos_tgl, trdos_flg )
 	begin
 		if N_RESET = '0' then
 			port_7ffd <= "00000000";
 			ram_ext <= "000";
 			sound_out <= '0';
-			mic <= '0';
-			--border_attr <= "000";
+			--mic <= '0';
+			trdos_flg <= '0';
 		elsif CLK14'event and CLK14 = '1' then 
 			if tick = '1' then
 
@@ -394,10 +416,15 @@ begin
 					-- port #FE
 					if A(0) = '0' then
 						border_attr <= MD(2 downto 0); -- border attr
-						mic <= MD(3); -- MIC
-						sound_out <= MD(4); -- BEEPER
+						--mic <= MD(3); -- MIC
+						sound_out <= not(MD(4) xor MD(3)); -- BEEPER
 					end if;
-				end if;					
+				end if;	
+
+				if trdos_tgl = '1' then 
+					trdos_flg <= not trdos_flg;
+				end if;
+				
 			end if;
 		end if;
 	end process;
@@ -407,7 +434,7 @@ begin
 
 	-- read ports by CPU
 	D(7 downto 0) <= 
-		port_7ffd(7 downto 0) when port_read = '1' and A15='0' and A(1)='0' else -- #7FFD
+		--port_7ffd(7 downto 0) when port_read = '1' and A15='0' and A(1)='0' else -- #7FFD
 		'1' & ear & '1' & KB(4 downto 0) when port_read = '1' and A(0) = '0' else -- #FE
 		attr_r when port_read = '1' and A(7 downto 0) = "11111111" else -- #FF
 		"ZZZZZZZZ";

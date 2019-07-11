@@ -101,7 +101,6 @@ set_location_assignment PIN_30 -to N_WR
 set_location_assignment PIN_48 -to N_WR_BUF_EN
 set_location_assignment PIN_20 -to SPEAKER
 set_location_assignment PIN_6 -to TAPE_IN
-set_location_assignment PIN_8 -to TAPE_OUT
 set_location_assignment PIN_94 -to VIDEO_SYNC
 set_location_assignment PIN_96 -to RAM_A18
 set_location_assignment PIN_46 -to WR_BUF
@@ -170,3 +169,4 @@ set_global_assignment -name ECO_OPTIMIZE_TIMING ON
 set_global_assignment -name ECO_REGENERATE_REPORT ON
 set_global_assignment -name SLOW_SLEW_RATE ON
 set_global_assignment -name FORCE_FITTER_TO_AVOID_PERIPHERY_PLACEMENT_WARNINGS ON
+set_location_assignment PIN_8 -to ROM_A15
