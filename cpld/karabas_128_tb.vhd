@@ -27,7 +27,6 @@ architecture behavior of karabas_128_tb is
         
         -- ZX BUS signals
         BUS_N_IORQGE : in std_logic := '0';
-        BUS_N_ROMCS: in std_logic := '0';
 
         -- Buffers
         WR_BUF  : out std_logic := '0';
@@ -43,6 +42,9 @@ architecture behavior of karabas_128_tb is
         RAM_A14 : out std_logic := '0';
         RAM_A15 : out std_logic := '0';
         RAM_A16 : out std_logic := '0';
+        RAM_A17 : out std_logic := '0';
+        RAM_A18 : out std_logic := '0';
+        RAM_A19 : out std_logic := '0';
 
         -- ROM
         N_ROM_CS    : out std_logic := '1';
@@ -50,8 +52,6 @@ architecture behavior of karabas_128_tb is
         
         -- Video
         VIDEO_SYNC    : out std_logic := '1';
-        VIDEO_HSYNC    : out std_logic := '1';
-        VIDEO_VSYNC    : out std_logic := '1';
         VIDEO_R       : out std_logic := '0';
         VIDEO_G       : out std_logic := '0';
         VIDEO_B       : out std_logic := '0';
@@ -89,7 +89,6 @@ architecture behavior of karabas_128_tb is
     signal d : std_logic_vector(7 downto 0);
 
     signal BUS_N_IORQGE : std_logic := '0';
-    signal BUS_N_ROMCS: std_logic := '0';
 
     signal WR_BUF  : std_logic := '0';
     signal N_RD_BUF_EN : std_logic := '1';
@@ -103,13 +102,14 @@ architecture behavior of karabas_128_tb is
     signal RAM_A14 : std_logic := '0';
     signal RAM_A15 : std_logic := '0';
     signal RAM_A16 : std_logic := '0';
+    signal RAM_A17 : std_logic := '0';
+    signal RAM_A18 : std_logic := '0';
+    signal RAM_A19 : std_logic := '0';
 
     signal N_ROM_CS : std_logic := '1';
     signal ROM_A14 : std_logic := '0';
         
     signal VIDEO_SYNC : std_logic := '1';
-    signal VIDEO_HSYNC : std_logic := '1';
-    signal VIDEO_VSYNC : std_logic := '1';
     signal VIDEO_R       : std_logic := '0';
     signal VIDEO_G       : std_logic := '0';
     signal VIDEO_B       : std_logic := '0';
@@ -144,7 +144,6 @@ begin
         D => d,
         
         BUS_N_IORQGE => BUS_N_IORQGE,
-        BUS_N_ROMCS => BUS_N_ROMCS,
 
         WR_BUF => WR_BUF,
         N_RD_BUF_EN => N_RD_BUF_EN,
@@ -158,13 +157,14 @@ begin
         RAM_A14 => RAM_A14,
         RAM_A15 => RAM_A15,
         RAM_A16 => RAM_A16,
+		  RAM_A17 => RAM_A17,
+		  RAM_A18 => RAM_A18,
+		  RAM_A19 => RAM_A19,
 
         N_ROM_CS => N_ROM_CS,
         ROM_A14 => ROM_A14,
         
         VIDEO_SYNC => VIDEO_SYNC,
-        VIDEO_HSYNC => VIDEO_HSYNC,
-        VIDEO_VSYNC => VIDEO_VSYNC,
         VIDEO_R => VIDEO_R,
         VIDEO_G => VIDEO_G,
         VIDEO_B => VIDEO_B,
