@@ -23,6 +23,7 @@ entity karabas_128 is
 		
 		-- ZX BUS signals
 		BUS_N_IORQGE : in std_logic := '0';
+		BUS_N_ROMCS: in std_logic := '0';		
 
 		-- Buffers
 		WR_BUF	: out std_logic := '0';
@@ -40,7 +41,6 @@ entity karabas_128 is
 		RAM_A16 : out std_logic := '0';
 		RAM_A17 : out std_logic := '0';
 		RAM_A18 : out std_logic := '0';
-		RAM_A19 : out std_logic := '0';
 
 		-- ROM
 		N_ROM_CS	: out std_logic := '1';
@@ -135,14 +135,14 @@ begin
 				"000010" when A15 = '1' and A14 = '0' else
 				ram_ext(2 downto 0) & port_7ffd(2 downto 0);
 
-	N_ROM_CS <= '0' when n_is_rom = '0' and N_RD = '0' else '1';
+	N_ROM_CS <= n_is_rom or N_RD or BUS_N_ROMCS;
 
 	RAM_A14 <= ram_page(0) when vbus_mode = '0' else '1';
 	RAM_A15 <= ram_page(1) when vbus_mode = '0' else port_7ffd(3);
 	RAM_A16 <= ram_page(2) when vbus_mode = '0' else '1';
 	RAM_A17 <= ram_page(3) when vbus_mode = '0' else '0';
 	RAM_A18 <= ram_page(4) when vbus_mode = '0' else '0';
-	RAM_A19 <= ram_page(5) when vbus_mode = '0' else '0';
+	--RAM_A19 <= ram_page(5) when vbus_mode = '0' else '0';
 
 	vbus_req <= '0' when ( N_MREQ = '0' or N_IORQ = '0' ) and ( N_WR = '0' or N_RD = '0' ) else '1';
 	vbus_rdy <= '0' when tick = '0' or chr_col_cnt(0) = '0' else '1';

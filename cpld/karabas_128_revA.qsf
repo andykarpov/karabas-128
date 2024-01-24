@@ -139,7 +139,6 @@ set_global_assignment -name SUPPRESS_REG_MINIMIZATION_MSG ON
 set_global_assignment -name ENABLE_DRC_SETTINGS ON
 
 set_location_assignment PIN_31 -to BUS_N_IORQGE
-set_location_assignment PIN_24 -to RAM_A19
 set_location_assignment PIN_1 -to D[7]
 set_location_assignment PIN_93 -to A[2]
 set_location_assignment PIN_2 -to A[1]
@@ -170,3 +169,4 @@ set_global_assignment -name ECO_OPTIMIZE_TIMING ON
 set_global_assignment -name ECO_REGENERATE_REPORT ON
 set_global_assignment -name SLOW_SLEW_RATE ON
 set_global_assignment -name FORCE_FITTER_TO_AVOID_PERIPHERY_PLACEMENT_WARNINGS ON
+set_location_assignment PIN_24 -to BUS_N_ROMCS
