@@ -343,49 +343,41 @@ begin
 		std_logic_vector( "0" & ver_cnt(4 downto 3) & chr_row_cnt & ver_cnt(2 downto 0) & hor_cnt(4 downto 0) ) when vid_rd = '0' else
 		std_logic_vector( "0110" & ver_cnt(4 downto 0) & hor_cnt(4 downto 0) );
 
-	-- r/g/b
+	-- r/g/b/i
 	process( CLK14 )
 	begin
 		if CLK14'event and CLK14 = '1' then
 			if tick = '1' then
-				if paper_r = '0' then           
+				if paper_r = '0' then
 					if( shift_r(7) xor ( attr_r(7) and invert(4) ) ) = '1' then
 						VIDEO_B <= attr_r(0);
 						VIDEO_R <= attr_r(1);
 						VIDEO_G <= attr_r(2);
+						-- only enable intensity if there is even one color bit active
+						VIDEO_I <= attr_r(6) and (attr_r(0) or attr_r(1) or attr_r(2));
 					else
 						VIDEO_B <= attr_r(3);
 						VIDEO_R <= attr_r(4);
 						VIDEO_G <= attr_r(5);
+						-- only enable intensity if there is even one color bit active
+						VIDEO_I <= attr_r(6) and (attr_r(3) or attr_r(4) or attr_r(5));
 						end if;
 				else
 					if blank_r = '0' then
-						VIDEO_B <= 'Z';
-						VIDEO_R <= 'Z';
-						VIDEO_G <= 'Z';
+						-- pull all RGBI lines low instead of high-Z
+						VIDEO_B <= '0';
+						VIDEO_R <= '0';
+						VIDEO_G <= '0';
+						VIDEO_I <= '0';
 						else
 						VIDEO_B <= border_attr(0);
 						VIDEO_R <= border_attr(1);
 						VIDEO_G <= border_attr(2);
+						-- border has no intensity
+						VIDEO_I <= '0';
 					end if;
 				end if;
 			end if;
-
-		end if;
-	end process;
-
-	-- brightness
-	process( CLK14 )
-	begin
-		if CLK14'event and CLK14 = '1' then
-			if tick = '1' then
-				if paper_r = '0' and attr_r(6) = '1' then
-					VIDEO_I <= '1';
-				else
-					VIDEO_I <= '0';
-				end if;
-			end if;
-
 		end if;
 	end process;
 
