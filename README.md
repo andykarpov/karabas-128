@@ -22,9 +22,9 @@ For more information and assembly instructions please see **HOWTO**s in [English
 
 **ERRATA for PCB rev.B:** [English](https://github.com/andykarpov/karabas-128/blob/master/ERRATA-revB-en.md) and [Russian](https://github.com/andykarpov/karabas-128/blob/master/ERRATA-revB-ru.md).
 
-**Latest revision:** rev.B1.
+**Latest revision:** [rev.B2](https://github.com/andykarpov/karabas-128-pcb).
 
-Forum topic with discussion, new features and bugs is here: [zx-pk.ru](http://zx-pk.ru/threads/27724-karabas-128.html). (mostly russian-only, sorry about that).
+Forum topic with discussion, new features and bugs is here: [zx-pk.ru](http://zx-pk.ru/threads/27724-karabas-128.html). (mostly russian-only).
 
 License for this project is **WTFPL**. [More details here](https://github.com/andykarpov/karabas-128/blob/master/LICENSE.md).
 
@@ -44,14 +44,10 @@ License for this project is **WTFPL**. [More details here](https://github.com/an
 
 ### Pre-production renders:
 
-![image](https://github.com/andykarpov/karabas-128/raw/master/docs/progress9.png)
-
-![image](https://github.com/andykarpov/karabas-128/raw/master/docs/progress8.png)
+![image](https://github.com/andykarpov/karabas-128/raw/master/docs/karabas_128_3d.png)
 
 
 ### Prototype photos:
-
-![image](https://github.com/andykarpov/karabas-128/raw/master/docs/karabas_128_3d.png)
 
 ![image](https://github.com/andykarpov/karabas-128/raw/master/docs/progress6.jpg)
 
