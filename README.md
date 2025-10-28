@@ -24,6 +24,8 @@ For more information and assembly instructions please see **HOWTO**s in [English
 
 **Latest revision:** rev.B1.
 
+Forum topic with discussion, new features and bugs is here: [zx-pk.ru](http://zx-pk.ru/threads/27724-karabas-128.html). (mostly russian-only, sorry about that).
+
 License for this project is **WTFPL**. [More details here](https://github.com/andykarpov/karabas-128/blob/master/LICENSE.md).
 
 
@@ -48,6 +50,8 @@ License for this project is **WTFPL**. [More details here](https://github.com/an
 
 
 ### Prototype photos:
+
+![image](https://github.com/andykarpov/karabas-128/raw/master/docs/karabas_128_3d.png)
 
 ![image](https://github.com/andykarpov/karabas-128/raw/master/docs/progress6.jpg)
 

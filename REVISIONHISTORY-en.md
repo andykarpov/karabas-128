@@ -31,3 +31,8 @@ See ERRATA for bugs and issues )
 
 - Added diode for mode switch feature (RESET+1, RESET+2, etc - thanks goes to solegstar)
 
+## Revision B2
+
+- Import project to Kicad
+
+- Small cosmetics changes
